@@ -1,0 +1,1 @@
+# airflow-scheduler-failover-controller
