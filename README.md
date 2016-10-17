@@ -5,7 +5,7 @@
 The purpose of this project is to create a failover controller that will control which scheduler is up and running to allow HA across an Airflow cluster. 
 
 
-## Motivation 
+### Motivation 
 
 We had attempted to setup a Highly Available Airflow Cluster where we had 2 machines with all the normal Airflow Daemons (web server, scheduler, workers, etc.) running on them. Each of the instances would share a MySQL instances as its MetaStore and share a RabbitMQ Queue for its Queueing Services (since we were using CeleryExecutors).
  
