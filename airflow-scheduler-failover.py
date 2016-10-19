@@ -23,8 +23,21 @@ if "AIRFLOW_HOME" in os.environ:
 else:
     AIRFLOW_HOME_DIR = os.path.expanduser("~/airflow")
 AIRFLOW_CONFIG_FILE_PATH = AIRFLOW_HOME_DIR + "/airflow.cfg"
-AIRFLOW_SCHEDULER_START_COMMAND = "sh ~/airflow/bin/restart-scheduler.sh"
-AIRFLOW_SCHEDULER_STOP_COMMAND = "sh ~/airflow/bin/shutdown-scheduler.sh"
+AIRFLOW_SCHEDULER_START_SCRIPT_PATH = AIRFLOW_HOME_DIR+"/bin/restart-scheduler.sh"
+AIRFLOW_SCHEDULER_STOP_SCRIPT_PATH = AIRFLOW_HOME_DIR+"/bin/shutdown-scheduler.sh"
+AIRFLOW_SCHEDULER_START_COMMAND = "sh "+AIRFLOW_SCHEDULER_START_SCRIPT_PATH
+AIRFLOW_SCHEDULER_STOP_COMMAND = "sh "+AIRFLOW_SCHEDULER_STOP_SCRIPT_PATH
+
+# Cheking if all configuration and script files exists.
+if not os.path.isfile(AIRFLOW_SCHEDULER_START_SCRIPT_PATH):
+    print "--- Scheduler start script missing ---"
+    sys.exit(1)
+if not os.path.isfile(AIRFLOW_SCHEDULER_STOP_SCRIPT_PATH):
+    print "--- Scheduler shutdown script missing ---"
+    sys.exit(1)
+if not os.path.isfile(AIRFLOW_CONFIG_FILE_PATH):
+    print "--- Airflow config file missing ---"
+    sys.exit(1)
 
 IS_FAILOVER_CONTROLLER_ACTIVE = False
 LOG_INFO = True
@@ -370,6 +383,7 @@ if __name__ == '__main__':
         print "active_failover_node: " + str(SchedulerFailoverKeyValue.get_active_failover_node())
         print "active_scheduler_node: " + str(SchedulerFailoverKeyValue.get_active_scheduler_node())
         print "last_failover_heartbeat: " + str(SchedulerFailoverKeyValue.get_failover_heartbeat())
+        print "Search :" + str(SchedulerFailoverKeyValue.search_for_active_scheduler_node())
     else:
         try:
             main()
