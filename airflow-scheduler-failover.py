@@ -383,7 +383,6 @@ if __name__ == '__main__':
         print "active_failover_node: " + str(SchedulerFailoverKeyValue.get_active_failover_node())
         print "active_scheduler_node: " + str(SchedulerFailoverKeyValue.get_active_scheduler_node())
         print "last_failover_heartbeat: " + str(SchedulerFailoverKeyValue.get_failover_heartbeat())
-        print "Search :" + str(SchedulerFailoverKeyValue.search_for_active_scheduler_node())
     else:
         try:
             main()
