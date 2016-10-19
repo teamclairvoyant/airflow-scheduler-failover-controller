@@ -25,7 +25,7 @@ The Active ASFC will poll every 10 seconds to see if the scheduler is running on
 
 ### Deployment Instructions
 
-1. Copy the files in the root and bin directory in this project to the {AIRFLOW_HOM}/bin directory
+1. Copy the files in the `root and bin` directory in this project to the `{AIRFLOW_HOM}/bin` directory
 
 2. Enable all the machines to be able to ssh to each of the other machines with the user you're running airflow as
 
@@ -49,11 +49,19 @@ The Active ASFC will poll every 10 seconds to see if the scheduler is running on
 
       ```
       
-        python airflow-scheduler-failover.py --test_connection
+        python airflow-scheduler-failover.py test_connection
       
       ```
 
 5. Start up all the airflow daemons except for the scheduler
+
+    a. You can use following commands:
+
+       ```
+       nohup airflow webserver $* >> ~/airflow/logs/webserver.logs &
+       nohup airflow worker $* >> ~/airflow/logs/celery.logs &
+       sh ~/airflow/bin/startup-scheduler-failover.sh
+       ```
 
 6. Verify the daemons is up by checking the status with the following command
 
@@ -72,7 +80,7 @@ The Active ASFC will poll every 10 seconds to see if the scheduler is running on
 
   ```
   
-    python airflow-scheduler-failover.py --metadata
+    python airflow-scheduler-failover.py metadata
     
   ```
   
