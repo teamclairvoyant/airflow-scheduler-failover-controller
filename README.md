@@ -53,7 +53,7 @@ The Active ASFC will poll every 10 seconds to see if the scheduler is running on
       
       ```
 
-5. Start up all the airflow daemons except for the scheduler
+5. Start up all the airflow daemons and the fail over scheduler
 
     a. You can use following commands:
 
