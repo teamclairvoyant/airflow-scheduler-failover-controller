@@ -68,7 +68,7 @@ The Active ASFC will poll every 10 seconds to see if the scheduler is running on
 
   ```
   
-    ps -eaf | grep "airflow\-scheduler\-failover"
+    ps -eaf | grep "airflow-scheduler-failover"
     
   ```
 
@@ -80,7 +80,7 @@ The Active ASFC will poll every 10 seconds to see if the scheduler is running on
 
   ```
   
-    python airflow-scheduler-failover.py metadata
+    python ~/airflow/bin/airflow-scheduler-failover.py metadata
     
   ```
   

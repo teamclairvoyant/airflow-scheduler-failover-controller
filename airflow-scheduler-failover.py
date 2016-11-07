@@ -188,7 +188,7 @@ def get_standby_nodes(active_scheduler_node):
 
 
 def is_scheduler_running(host):
-    log_info("Starting to Check if Scheduler on host '" + host + "' is running...")
+    log_info("Starting to Check if Scheduler on host '" + str(host) + "' is running...")
 
     output = run_command_through_ssh(host, "ps -eaf | grep \"airflow scheduler\"")
     active_list = []
@@ -201,15 +201,15 @@ def is_scheduler_running(host):
 
     is_running = active_list_length > 0
 
-    log_info("Finished Checking if Scheduler on host '" + host + "' is running. is_running: " + str(is_running))
+    log_info("Finished Checking if Scheduler on host '" + str(host) + "' is running. is_running: " + str(is_running))
 
     return is_running
 
 
 def startup_scheduler(host):
-    log_info("Starting Scheduler on host '" + host + "'...")
+    log_info("Starting Scheduler on host '" + str(host) + "'...")
     run_command_through_ssh(host, AIRFLOW_SCHEDULER_START_COMMAND)
-    log_info("Finished starting Scheduler on host '" + host + "'")
+    log_info("Finished starting Scheduler on host '" + str(host) + "'")
 
 
 def shutdown_scheduler(host):
@@ -240,7 +240,7 @@ def search_for_active_scheduler_node():
         log_info("Nodes do not have a Scheduler running on them. Using Default Leader.")
         active_scheduler_node = NODES_IN_CLUSTER[0]
 
-    log_info("Finished searching for Active Scheduler Node: '" + active_scheduler_node + "'")
+    log_info("Finished searching for Active Scheduler Node: '" + str(active_scheduler_node) + "'")
     return active_scheduler_node
 
 
@@ -271,7 +271,7 @@ def main():
     # IS_FAILOVER_CONTROLLER_ACTIVE is always set to False in the beginning
     global IS_FAILOVER_CONTROLLER_ACTIVE
     current_host = get_current_host()
-    log_info("Current Host: " + current_host)
+    log_info("Current Host: " + str(current_host))
 
     # Creating metadata table. If the creation fails assume it was created already.
     try:
@@ -289,8 +289,8 @@ def main():
         active_failover_node = SchedulerFailoverKeyValue.get_active_failover_node()
         active_scheduler_node = SchedulerFailoverKeyValue.get_active_scheduler_node()
         last_failover_heartbeat = SchedulerFailoverKeyValue.get_failover_heartbeat()
-        log_info("Active Failover Node: " + active_failover_node)
-        log_info("Active Scheduler Node: " + active_scheduler_node)
+        log_info("Active Failover Node: " + str(active_failover_node))
+        log_info("Active Scheduler Node: " + str(active_scheduler_node))
         log_info("Last Failover Heartbeat: " + str(last_failover_heartbeat) + ". Current time: " + get_datetime_as_str(datetime.datetime.now()) + ".")
 
         # if the current controller instance is not active, then execute this statement
@@ -298,7 +298,7 @@ def main():
             log_info("This Failover Controller is on Standby.")
 
             if active_failover_node is not None:
-                log_info("There already is an active Failover Controller '" + active_failover_node + "'")
+                log_info("There already is an active Failover Controller '" + str(active_failover_node)+ "'")
                 if active_failover_node == current_host:
                     log_alert("Discovered this Failover Controller should be active because Active Failover Node is this nodes host")
                     set_this_failover_controller_as_active()
@@ -336,14 +336,14 @@ def main():
                     SchedulerFailoverKeyValue.set_active_scheduler_node(active_scheduler_node)
 
                 if not is_scheduler_running(active_scheduler_node):
-                    log_alert("Scheduler is not running on Active Scheduler Node '" + active_scheduler_node + "'")
+                    log_alert("Scheduler is not running on Active Scheduler Node '" + str(active_scheduler_node) + "'")
                     startup_scheduler(active_scheduler_node)
                     if not is_scheduler_running(active_scheduler_node):
-                        log_alert("Failed to restart Scheduler on Active Scheduler Node '" + active_scheduler_node + "'")
+                        log_alert("Failed to restart Scheduler on Active Scheduler Node '" +str(active_scheduler_node) + "'")
                         log_alert("Starting to search for a new Active Scheduler Node")
                         is_successful = False
                         for standby_node in get_standby_nodes(active_scheduler_node):
-                            log_alert("Trying to startup Scheduler on standby node '" + standby_node + "'")
+                            log_alert("Trying to startup Scheduler on standby node '" + str(standby_node) + "'")
                             startup_scheduler(standby_node)
                             if is_scheduler_running(standby_node):
                                 is_successful = True
@@ -372,7 +372,7 @@ if __name__ == '__main__':
     args = sys.argv[1:]
     if "test_connection" in args:
         for host in NODES_IN_CLUSTER:
-            log_info("Testing Connection for host '" + host + "'")
+            log_info("Testing Connection for host '" + str(host) + "'")
             log_info(run_command_through_ssh(host, "echo 'Connection Succeeded'"))
     elif "clear" in args:
         SchedulerFailoverKeyValue.truncate()
