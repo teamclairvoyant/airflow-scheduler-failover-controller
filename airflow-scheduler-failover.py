@@ -14,8 +14,10 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 
 
 # Add the following to the airflow.cfg file:
-#   [core]
-#   nodes_in_cluster = 10.0.0.141,10.0.0.142
+#   [scheduler_failover]
+#
+#   # List of potential nodes that can act as Schedulers (Comma Separated List)
+#   scheduler_nodes_in_cluster = 10.0.0.141,10.0.0.142
 #
 
 if "AIRFLOW_HOME" in os.environ:
@@ -23,18 +25,16 @@ if "AIRFLOW_HOME" in os.environ:
 else:
     AIRFLOW_HOME_DIR = os.path.expanduser("~/airflow")
 AIRFLOW_CONFIG_FILE_PATH = AIRFLOW_HOME_DIR + "/airflow.cfg"
-AIRFLOW_SCHEDULER_START_SCRIPT_PATH = AIRFLOW_HOME_DIR+"/bin/restart-scheduler.sh"
-AIRFLOW_SCHEDULER_STOP_SCRIPT_PATH = AIRFLOW_HOME_DIR+"/bin/shutdown-scheduler.sh"
-AIRFLOW_SCHEDULER_START_COMMAND = "sh "+AIRFLOW_SCHEDULER_START_SCRIPT_PATH
-AIRFLOW_SCHEDULER_STOP_COMMAND = "sh "+AIRFLOW_SCHEDULER_STOP_SCRIPT_PATH
+AIRFLOW_SCHEDULER_START_COMMAND = """
+echo "Starting Up Scheduler"
+nohup airflow scheduler >> ~/airflow/logs/scheduler.logs &
+"""
+AIRFLOW_SCHEDULER_STOP_COMMAND = """
+echo "Shutting Down Scheduler"
+for pid in `ps -ef | grep "airflow scheduler" | awk '{print $2}'` ; do kill -9 $pid ; done
+"""
 
-# Cheking if all configuration and script files exists.
-if not os.path.isfile(AIRFLOW_SCHEDULER_START_SCRIPT_PATH):
-    print "--- Scheduler start script missing ---"
-    sys.exit(1)
-if not os.path.isfile(AIRFLOW_SCHEDULER_STOP_SCRIPT_PATH):
-    print "--- Scheduler shutdown script missing ---"
-    sys.exit(1)
+# Checking if all configuration and script files exists.
 if not os.path.isfile(AIRFLOW_CONFIG_FILE_PATH):
     print "--- Airflow config file missing ---"
     sys.exit(1)
@@ -46,10 +46,10 @@ TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 conf = ConfigParser.RawConfigParser()
 conf.read(AIRFLOW_CONFIG_FILE_PATH)
-NODES_IN_CLUSTER = conf.get('core', 'NODES_IN_CLUSTER')
-if NODES_IN_CLUSTER is not None:
-    NODES_IN_CLUSTER = NODES_IN_CLUSTER.split(",")
-print "NODES_IN_CLUSTER: " + str(NODES_IN_CLUSTER)
+SCHEDULER_NODES_IN_CLUSTER = conf.get('scheduler_failover', 'SCHEDULER_NODES_IN_CLUSTER')
+if SCHEDULER_NODES_IN_CLUSTER is not None:
+    SCHEDULER_NODES_IN_CLUSTER = SCHEDULER_NODES_IN_CLUSTER.split(",")
+print "SCHEDULER_NODES_IN_CLUSTER: " + str(SCHEDULER_NODES_IN_CLUSTER)
 SQL_ALCHEMY_CONN = conf.get('core', 'SQL_ALCHEMY_CONN')
 engine_args = {}
 engine = create_engine(SQL_ALCHEMY_CONN, **engine_args)
@@ -81,7 +81,6 @@ def log_error(msg):
 
 def log(type, msg):
     print str(datetime.datetime.now()) + " - " + type + " - " + str(msg)
-
 
 
 class SchedulerFailoverKeyValue(Base):
@@ -181,7 +180,7 @@ def get_current_host():
 
 def get_standby_nodes(active_scheduler_node):
     standby_nodes = []
-    for node in NODES_IN_CLUSTER:
+    for node in SCHEDULER_NODES_IN_CLUSTER:
         if node != active_scheduler_node:
             standby_nodes.append(node)
     return standby_nodes
@@ -190,7 +189,7 @@ def get_standby_nodes(active_scheduler_node):
 def is_scheduler_running(host):
     log_info("Starting to Check if Scheduler on host '" + str(host) + "' is running...")
 
-    output = run_command_through_ssh(host, "ps -eaf | grep \"airflow scheduler\"")
+    output = run_command_through_ssh(host, "ps -eaf | grep 'airflow scheduler'")
     active_list = []
     output = output.split('\n')
     for line in output:
@@ -222,7 +221,7 @@ def search_for_active_scheduler_node():
     active_scheduler_node = None
     log_info("Starting to search for current Active Scheduler Node...")
     nodes_with_scheduler_running = []
-    for node in NODES_IN_CLUSTER:
+    for node in SCHEDULER_NODES_IN_CLUSTER:
         if is_scheduler_running(node):
             nodes_with_scheduler_running.append(node)
     log_info("Nodes with a scheduler currently running on it: '" + str(nodes_with_scheduler_running) + "'")
@@ -238,7 +237,7 @@ def search_for_active_scheduler_node():
         active_scheduler_node = nodes_with_scheduler_running[0]
     else:
         log_info("Nodes do not have a Scheduler running on them. Using Default Leader.")
-        active_scheduler_node = NODES_IN_CLUSTER[0]
+        active_scheduler_node = SCHEDULER_NODES_IN_CLUSTER[0]
 
     log_info("Finished searching for Active Scheduler Node: '" + str(active_scheduler_node) + "'")
     return active_scheduler_node
@@ -371,9 +370,13 @@ def main():
 if __name__ == '__main__':
     args = sys.argv[1:]
     if "test_connection" in args:
-        for host in NODES_IN_CLUSTER:
+        for host in SCHEDULER_NODES_IN_CLUSTER:
             log_info("Testing Connection for host '" + str(host) + "'")
             log_info(run_command_through_ssh(host, "echo 'Connection Succeeded'"))
+    if "is_scheduler_running" in args:
+        for host in SCHEDULER_NODES_IN_CLUSTER:
+            log_info("Testing to see if scheduler is running on host '" + str(host) + "'")
+            log_info(is_scheduler_running(host))
     elif "clear" in args:
         SchedulerFailoverKeyValue.truncate()
     elif "metadata" in args:
