@@ -12,6 +12,9 @@ from sqlalchemy import create_engine, Column, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 
+# todo: break this into multiple files for a cleaner setup
+# todo: better form of logging to avoid too much logs
+# todo: better deployment and run method
 
 # Add the following to the airflow.cfg file:
 #   [scheduler_failover]
@@ -83,6 +86,7 @@ def log(type, msg):
     print str(datetime.datetime.now()) + " - " + type + " - " + str(msg)
 
 
+# todo: provide an implementation which uses Zookeeper instead of the metastore
 class SchedulerFailoverKeyValue(Base):
     __tablename__ = 'scheduler_failover'
     key = Column(String(200), primary_key=True)
@@ -197,6 +201,8 @@ def is_scheduler_running(host):
             active_list.append(line)
 
     active_list_length = len(filter(None, active_list))
+
+    # todo: If there's more then one scheduler running this should kill off the other schedulers
 
     is_running = active_list_length > 0
 
@@ -352,6 +358,7 @@ def main():
                                 break
                         if not is_successful:
                             log_error("Tried to start up a Scheduler on a standby but all failed. Retrying on next polling.")
+                            # todo: this should send out an email alert to let people know that the failover controller couldn't startup a scheduler
                         log_alert("Finished search for a new Active Scheduler Node")
                     else:
                         log_alert("Confirmed the Scheduler is now running")
