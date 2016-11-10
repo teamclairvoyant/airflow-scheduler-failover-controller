@@ -27,7 +27,7 @@ The Active ASFC will poll every 10 seconds to see if the scheduler is running on
 
 1. Create a the directory `{AIRFLOW_HOME}/scheduler-failover`
 
-2. Copy the files in the `airflow-scheduler-failover-controller root directory` and `airflow-scheduler-failover-controller/bin` directory in this project to the `{AIRFLOW_HOME}/scheduler-failover` directory
+2. Copy the files in the `{PROJECT_ROOT}/scheduler-failover` directory in this project to the `{AIRFLOW_HOME}/scheduler-failover` directory
 
 3. (Optional) Edit the AIRFLOW_SCHEDULER_START_COMMAND and AIRFLOW_SCHEDULER_STOP_COMMAND arguments in the airflow-scheduler-failover.py file if you use a specific method of starting up and shutting down the schedulers (like systemd)
 
