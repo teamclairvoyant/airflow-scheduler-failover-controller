@@ -3,6 +3,6 @@
 
 echo "Starting Up Scheduler Failover"
 
-BIN_DIR=$(dirname "$0")
+LOCAL_DIR=$(dirname "$0")
 
-python ${BIN_DIR}/airflow-scheduler-failover.py >> ~/airflow/logs/scheduler-failover.logs &
+nohup python ${LOCAL_DIR}/airflow-scheduler-failover.py > /dev/null &

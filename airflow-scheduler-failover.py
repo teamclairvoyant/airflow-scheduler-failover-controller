@@ -8,6 +8,8 @@ import os
 import datetime
 import subprocess
 import socket
+import logging
+import logging.handlers
 from sqlalchemy import create_engine, Column, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -23,11 +25,13 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 #   scheduler_nodes_in_cluster = 10.0.0.141,10.0.0.142
 #
 
-if "AIRFLOW_HOME" in os.environ:
-    AIRFLOW_HOME_DIR = os.environ['AIRFLOW_HOME']
-else:
-    AIRFLOW_HOME_DIR = os.path.expanduser("~/airflow")
+# GLOBAL VARIABLES
+AIRFLOW_HOME_DIR = os.environ['AIRFLOW_HOME'] if "AIRFLOW_HOME" in os.environ else os.path.expanduser("~/airflow")
 AIRFLOW_CONFIG_FILE_PATH = AIRFLOW_HOME_DIR + "/airflow.cfg"
+
+IS_FAILOVER_CONTROLLER_ACTIVE = False  # always False - DO NOT CHANGE
+POLL_FREQUENCY_SECONDS = 10  # Set polling frequency here
+TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 AIRFLOW_SCHEDULER_START_COMMAND = """
 echo "Starting Up Scheduler"
 nohup airflow scheduler >> ~/airflow/logs/scheduler.logs &
@@ -36,16 +40,34 @@ AIRFLOW_SCHEDULER_STOP_COMMAND = """
 echo "Shutting Down Scheduler"
 for pid in `ps -ef | grep "airflow scheduler" | awk '{print $2}'` ; do kill -9 $pid ; done
 """
+LOGS_DIR = AIRFLOW_HOME_DIR + "/logs/scheduler-failover/"
+LOGS_FILE_NAME = "scheduler-failover-controller.log"
+LOGGING_LEVEL = logging.INFO
+
+# Creating location where logs are placed if it doesn't exist
+if not os.path.exists(os.path.expanduser(LOGS_DIR)):
+    os.makedirs(os.path.expanduser(LOGS_DIR))
+# Create the logger
+logger = logging.getLogger(__name__)
+# Set logging level
+logger.setLevel(LOGGING_LEVEL)
+# Create logging format
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# Create the stream handler to log messages to the console
+streamHandler = logging.StreamHandler()
+streamHandler.setLevel(logging.DEBUG)
+streamHandler.setFormatter(formatter)
+logger.addHandler(streamHandler)
+# Create the file handler to log messages to a log file
+fileHandler = logging.handlers.TimedRotatingFileHandler(filename=os.path.expanduser(LOGS_DIR + LOGS_FILE_NAME), when="midnight", backupCount=7)
+fileHandler.setLevel(logging.DEBUG)
+fileHandler.setFormatter(formatter)
+logger.addHandler(fileHandler)
 
 # Checking if all configuration and script files exists.
 if not os.path.isfile(AIRFLOW_CONFIG_FILE_PATH):
-    print "--- Airflow config file missing ---"
+    logger.error("Airflow config file missing")
     sys.exit(1)
-
-IS_FAILOVER_CONTROLLER_ACTIVE = False
-LOG_INFO = True
-POLL_FREQUENCY_SECONDS = 10
-TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 conf = ConfigParser.RawConfigParser()
 conf.read(AIRFLOW_CONFIG_FILE_PATH)
@@ -67,23 +89,6 @@ def get_datetime_as_str(date):
 
 def get_string_as_datetime(date_str):
     return datetime.datetime.strptime(date_str, TIMESTAMP_FORMAT)
-
-
-def log_info(msg):
-    if LOG_INFO:
-        log("INFO", msg)
-
-
-def log_alert(msg):
-    log("ALERT", msg)
-
-
-def log_error(msg):
-    log("ERROR", msg)
-
-
-def log(type, msg):
-    print str(datetime.datetime.now()) + " - " + type + " - " + str(msg)
 
 
 # todo: provide an implementation which uses Zookeeper instead of the metastore
@@ -191,7 +196,7 @@ def get_standby_nodes(active_scheduler_node):
 
 
 def is_scheduler_running(host):
-    log_info("Starting to Check if Scheduler on host '" + str(host) + "' is running...")
+    logger.info("Starting to Check if Scheduler on host '" + str(host) + "' is running...")
 
     output = run_command_through_ssh(host, "ps -eaf | grep 'airflow scheduler'")
     active_list = []
@@ -206,51 +211,51 @@ def is_scheduler_running(host):
 
     is_running = active_list_length > 0
 
-    log_info("Finished Checking if Scheduler on host '" + str(host) + "' is running. is_running: " + str(is_running))
+    logger.info("Finished Checking if Scheduler on host '" + str(host) + "' is running. is_running: " + str(is_running))
 
     return is_running
 
 
 def startup_scheduler(host):
-    log_info("Starting Scheduler on host '" + str(host) + "'...")
+    logger.info("Starting Scheduler on host '" + str(host) + "'...")
     run_command_through_ssh(host, AIRFLOW_SCHEDULER_START_COMMAND)
-    log_info("Finished starting Scheduler on host '" + str(host) + "'")
+    logger.info("Finished starting Scheduler on host '" + str(host) + "'")
 
 
 def shutdown_scheduler(host):
-    log_alert("Starting to shutdown Scheduler on host '" + host + "'...")
+    logger.critical("Starting to shutdown Scheduler on host '" + host + "'...")
     run_command_through_ssh(host, AIRFLOW_SCHEDULER_STOP_COMMAND)
-    log_alert("Finished shutting down Scheduler on host '" + host + "'")
+    logger.critical("Finished shutting down Scheduler on host '" + host + "'")
 
 
 def search_for_active_scheduler_node():
     active_scheduler_node = None
-    log_info("Starting to search for current Active Scheduler Node...")
+    logger.info("Starting to search for current Active Scheduler Node...")
     nodes_with_scheduler_running = []
     for node in SCHEDULER_NODES_IN_CLUSTER:
         if is_scheduler_running(node):
             nodes_with_scheduler_running.append(node)
-    log_info("Nodes with a scheduler currently running on it: '" + str(nodes_with_scheduler_running) + "'")
+    logger.info("Nodes with a scheduler currently running on it: '" + str(nodes_with_scheduler_running) + "'")
     if len(nodes_with_scheduler_running) > 1:
-        log_alert("Multiple nodes have a scheduler running on it. Shutting down all except the first one.")
+        logger.critical("Multiple nodes have a scheduler running on it. Shutting down all except the first one.")
         for index, host in enumerate(nodes_with_scheduler_running):
             if index != 0:
                 shutdown_scheduler(host)
             else:
                 active_scheduler_node = host
     elif len(nodes_with_scheduler_running) == 1:
-        log_info("Found one node with a Scheduler running on it")
+        logger.info("Found one node with a Scheduler running on it")
         active_scheduler_node = nodes_with_scheduler_running[0]
     else:
-        log_info("Nodes do not have a Scheduler running on them. Using Default Leader.")
+        logger.info("Nodes do not have a Scheduler running on them. Using Default Leader.")
         active_scheduler_node = SCHEDULER_NODES_IN_CLUSTER[0]
 
-    log_info("Finished searching for Active Scheduler Node: '" + str(active_scheduler_node) + "'")
+    logger.info("Finished searching for Active Scheduler Node: '" + str(active_scheduler_node) + "'")
     return active_scheduler_node
 
 
 def set_this_failover_controller_as_active():
-    log_alert("Setting this Failover Node to ACTIVE")
+    logger.critical("Setting this Failover Node to ACTIVE")
     global IS_FAILOVER_CONTROLLER_ACTIVE
     current_host = get_current_host()
 
@@ -258,69 +263,71 @@ def set_this_failover_controller_as_active():
         SchedulerFailoverKeyValue.set_active_failover_node(current_host)
         SchedulerFailoverKeyValue.set_failover_heartbeat()
         IS_FAILOVER_CONTROLLER_ACTIVE = True
-        log_alert("This Failover Controller is now ACTIVE.")
+        logger.critical("This Failover Controller is now ACTIVE.")
     except Exception, e:
         IS_FAILOVER_CONTROLLER_ACTIVE = False
-        log_error("Failed to set Failover Controller as ACTIVE. Trying again next heart beat.")
+        logger.error("Failed to set Failover Controller as ACTIVE. Trying again next heart beat.")
         traceback.print_exc(file=sys.stdout)
 
 
 def set_this_failover_controller_as_inactive():
-    log_alert("Setting this Failover Node to INACTIVE")
+    logger.critical("Setting this Failover Node to INACTIVE")
     global IS_FAILOVER_CONTROLLER_ACTIVE
     IS_FAILOVER_CONTROLLER_ACTIVE = False
 
 
 def main():
 
+    logger.info("Scheduler Failover Controller Starting Up!")
+
     # IS_FAILOVER_CONTROLLER_ACTIVE is always set to False in the beginning
     global IS_FAILOVER_CONTROLLER_ACTIVE
     current_host = get_current_host()
-    log_info("Current Host: " + str(current_host))
+    logger.info("Current Host: " + str(current_host))
 
     # Creating metadata table. If the creation fails assume it was created already.
     try:
-        log_info("Creating Metadata Table")
+        logger.info("Creating Metadata Table")
         Base.metadata.create_all(engine)
     except Exception, e:
-        log_info("Exception while Creating Metadata Table: " + str(e))
-        log_info("Table might already exist. Suppressing Exception.")
+        logger.info("Exception while Creating Metadata Table: " + str(e))
+        logger.info("Table might already exist. Suppressing Exception.")
 
     # Infinite while loop for polling with a sleep for X seconds.
     while 1:
-        log_info("--------------------------------------")
-        log_info("Started Polling...")
+        logger.info("--------------------------------------")
+        logger.info("Started Polling...")
 
         active_failover_node = SchedulerFailoverKeyValue.get_active_failover_node()
         active_scheduler_node = SchedulerFailoverKeyValue.get_active_scheduler_node()
         last_failover_heartbeat = SchedulerFailoverKeyValue.get_failover_heartbeat()
-        log_info("Active Failover Node: " + str(active_failover_node))
-        log_info("Active Scheduler Node: " + str(active_scheduler_node))
-        log_info("Last Failover Heartbeat: " + str(last_failover_heartbeat) + ". Current time: " + get_datetime_as_str(datetime.datetime.now()) + ".")
+        logger.info("Active Failover Node: " + str(active_failover_node))
+        logger.info("Active Scheduler Node: " + str(active_scheduler_node))
+        logger.info("Last Failover Heartbeat: " + str(last_failover_heartbeat) + ". Current time: " + get_datetime_as_str(datetime.datetime.now()) + ".")
 
         # if the current controller instance is not active, then execute this statement
         if not IS_FAILOVER_CONTROLLER_ACTIVE:
-            log_info("This Failover Controller is on Standby.")
+            logger.info("This Failover Controller is on Standby.")
 
             if active_failover_node is not None:
-                log_info("There already is an active Failover Controller '" + str(active_failover_node)+ "'")
+                logger.info("There already is an active Failover Controller '" + str(active_failover_node)+ "'")
                 if active_failover_node == current_host:
-                    log_alert("Discovered this Failover Controller should be active because Active Failover Node is this nodes host")
+                    logger.critical("Discovered this Failover Controller should be active because Active Failover Node is this nodes host")
                     set_this_failover_controller_as_active()
 
                 elif last_failover_heartbeat is None:
-                    log_alert("Last Failover Heartbeat is None")
+                    logger.critical("Last Failover Heartbeat is None")
                     set_this_failover_controller_as_active()
                     active_failover_node = SchedulerFailoverKeyValue.get_active_failover_node()
                 else:
                     failover_heartbeat_diff = (datetime.datetime.now() - last_failover_heartbeat).seconds
                     max_age = POLL_FREQUENCY_SECONDS * 2
                     if failover_heartbeat_diff > max_age:
-                        log_alert("Failover Heartbeat '" + get_datetime_as_str(last_failover_heartbeat) + "' for Active Failover controller '" + str(active_failover_node) + "' is older then max age of " + str(max_age) + " seconds")
+                        logger.critical("Failover Heartbeat '" + get_datetime_as_str(last_failover_heartbeat) + "' for Active Failover controller '" + str(active_failover_node) + "' is older then max age of " + str(max_age) + " seconds")
                         set_this_failover_controller_as_active()
                         active_failover_node = SchedulerFailoverKeyValue.get_active_failover_node()
             else:  # if the the
-                log_alert("Failover Node is None")
+                logger.critical("Failover Node is None")
                 set_this_failover_controller_as_active()
                 active_failover_node = SchedulerFailoverKeyValue.get_active_failover_node()
 
@@ -328,62 +335,65 @@ def main():
 
             # Check to make sure this Failover Controller
             if active_failover_node != current_host:
-                log_alert("Discovered this Failover Controller should not be active because Active Failover Node is not this nodes host")
+                logger.critical("Discovered this Failover Controller should not be active because Active Failover Node is not this nodes host")
                 set_this_failover_controller_as_inactive()
 
             else:
-                log_info("Setting Failover Heartbeat")
+                logger.info("Setting Failover Heartbeat")
                 SchedulerFailoverKeyValue.set_failover_heartbeat()
 
                 if active_scheduler_node is None:
-                    log_alert("Active Scheduler is None")
+                    logger.critical("Active Scheduler is None")
                     active_scheduler_node = search_for_active_scheduler_node()
                     SchedulerFailoverKeyValue.set_active_scheduler_node(active_scheduler_node)
 
                 if not is_scheduler_running(active_scheduler_node):
-                    log_alert("Scheduler is not running on Active Scheduler Node '" + str(active_scheduler_node) + "'")
+                    logger.critical("Scheduler is not running on Active Scheduler Node '" + str(active_scheduler_node) + "'")
                     startup_scheduler(active_scheduler_node)
                     if not is_scheduler_running(active_scheduler_node):
-                        log_alert("Failed to restart Scheduler on Active Scheduler Node '" +str(active_scheduler_node) + "'")
-                        log_alert("Starting to search for a new Active Scheduler Node")
+                        logger.critical("Failed to restart Scheduler on Active Scheduler Node '" +str(active_scheduler_node) + "'")
+                        logger.critical("Starting to search for a new Active Scheduler Node")
                         is_successful = False
                         for standby_node in get_standby_nodes(active_scheduler_node):
-                            log_alert("Trying to startup Scheduler on standby node '" + str(standby_node) + "'")
+                            logger.critical("Trying to startup Scheduler on standby node '" + str(standby_node) + "'")
                             startup_scheduler(standby_node)
                             if is_scheduler_running(standby_node):
                                 is_successful = True
                                 active_scheduler_node = standby_node
                                 SchedulerFailoverKeyValue.set_active_scheduler_node(active_scheduler_node)
-                                log_alert("New Active Scheduler Node is set to '" + active_scheduler_node + "'")
+                                logger.critical("New Active Scheduler Node is set to '" + active_scheduler_node + "'")
                                 break
                         if not is_successful:
-                            log_error("Tried to start up a Scheduler on a standby but all failed. Retrying on next polling.")
+                            logger.error("Tried to start up a Scheduler on a standby but all failed. Retrying on next polling.")
                             # todo: this should send out an email alert to let people know that the failover controller couldn't startup a scheduler
-                        log_alert("Finished search for a new Active Scheduler Node")
+                        logger.critical("Finished search for a new Active Scheduler Node")
                     else:
-                        log_alert("Confirmed the Scheduler is now running")
+                        logger.critical("Confirmed the Scheduler is now running")
                 else:
-                    log_info("Checking if scheduler instances are running on standby nodes...")
+                    logger.info("Checking if scheduler instances are running on standby nodes...")
                     for standby_node in get_standby_nodes(active_scheduler_node):
                         if is_scheduler_running(standby_node):
-                            log_alert("There is a Scheduler running on a standby node '" + standby_node + "'. Shutting Down that Scheduler.")
+                            logger.critical("There is a Scheduler running on a standby node '" + standby_node + "'. Shutting Down that Scheduler.")
                             shutdown_scheduler(standby_node)
-                    log_info("Finished checking if scheduler instances are running on standby nodes")
+                    logger.info("Finished checking if scheduler instances are running on standby nodes")
 
-        log_info("Finished Polling")
+        logger.info("Finished Polling. Sleeping for " + str(POLL_FREQUENCY_SECONDS) + " seconds")
 
         time.sleep(POLL_FREQUENCY_SECONDS)
+
+    # should not get to this point
+    logger.info("Scheduler Failover Controller Finished")
 
 if __name__ == '__main__':
     args = sys.argv[1:]
     if "test_connection" in args:
         for host in SCHEDULER_NODES_IN_CLUSTER:
-            log_info("Testing Connection for host '" + str(host) + "'")
-            log_info(run_command_through_ssh(host, "echo 'Connection Succeeded'"))
+            logger.info("Testing Connection for host '" + str(host) + "'")
+            logger.info(run_command_through_ssh(host, "echo 'Connection Succeeded'"))
     if "is_scheduler_running" in args:
         for host in SCHEDULER_NODES_IN_CLUSTER:
-            log_info("Testing to see if scheduler is running on host '" + str(host) + "'")
-            log_info(is_scheduler_running(host))
+            logger.info("Testing to see if scheduler is running on host '" + str(host) + "'")
+            logger.info(is_scheduler_running(host))
     elif "clear" in args:
         SchedulerFailoverKeyValue.truncate()
     elif "metadata" in args:
