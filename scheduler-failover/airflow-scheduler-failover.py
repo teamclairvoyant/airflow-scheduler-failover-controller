@@ -15,7 +15,6 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 # todo: break this into multiple files for a cleaner setup
-# todo: better form of logging to avoid too much logs
 # todo: better deployment and run method
 
 # Add the following to the airflow.cfg file:
@@ -333,6 +332,8 @@ def main():
 
         if IS_FAILOVER_CONTROLLER_ACTIVE:
 
+            logger.info("This Failover Controller is ACTIVE")
+
             # Check to make sure this Failover Controller
             if active_failover_node != current_host:
                 logger.critical("Discovered this Failover Controller should not be active because Active Failover Node is not this nodes host")
@@ -350,12 +351,14 @@ def main():
                 if not is_scheduler_running(active_scheduler_node):
                     logger.critical("Scheduler is not running on Active Scheduler Node '" + str(active_scheduler_node) + "'")
                     startup_scheduler(active_scheduler_node)
+                    logger.info("Pausing for 2 seconds to allow the Scheduler to Start")
+                    time.sleep(2)
                     if not is_scheduler_running(active_scheduler_node):
                         logger.critical("Failed to restart Scheduler on Active Scheduler Node '" +str(active_scheduler_node) + "'")
                         logger.critical("Starting to search for a new Active Scheduler Node")
                         is_successful = False
                         for standby_node in get_standby_nodes(active_scheduler_node):
-                            logger.critical("Trying to startup Scheduler on standby node '" + str(standby_node) + "'")
+                            logger.critical("Trying to startup Scheduler on STANDBY node '" + str(standby_node) + "'")
                             startup_scheduler(standby_node)
                             if is_scheduler_running(standby_node):
                                 is_successful = True
@@ -364,18 +367,20 @@ def main():
                                 logger.critical("New Active Scheduler Node is set to '" + active_scheduler_node + "'")
                                 break
                         if not is_successful:
-                            logger.error("Tried to start up a Scheduler on a standby but all failed. Retrying on next polling.")
+                            logger.error("Tried to start up a Scheduler on a STANDBY but all failed. Retrying on next polling.")
                             # todo: this should send out an email alert to let people know that the failover controller couldn't startup a scheduler
                         logger.critical("Finished search for a new Active Scheduler Node")
                     else:
                         logger.critical("Confirmed the Scheduler is now running")
                 else:
-                    logger.info("Checking if scheduler instances are running on standby nodes...")
+                    logger.info("Checking if scheduler instances are running on STANDBY nodes...")
                     for standby_node in get_standby_nodes(active_scheduler_node):
                         if is_scheduler_running(standby_node):
-                            logger.critical("There is a Scheduler running on a standby node '" + standby_node + "'. Shutting Down that Scheduler.")
+                            logger.critical("There is a Scheduler running on a STANDBY node '" + standby_node + "'. Shutting Down that Scheduler.")
                             shutdown_scheduler(standby_node)
-                    logger.info("Finished checking if scheduler instances are running on standby nodes")
+                    logger.info("Finished checking if scheduler instances are running on STANDBY nodes")
+        else:
+            logger.info("This Failover Controller on STANDBY")
 
         logger.info("Finished Polling. Sleeping for " + str(POLL_FREQUENCY_SECONDS) + " seconds")
 
