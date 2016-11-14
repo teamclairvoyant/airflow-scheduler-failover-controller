@@ -1,5 +1,3 @@
-__author__ = 'robertsanders'
-
 import logging
 import logging.handlers
 import os
@@ -24,6 +22,9 @@ def get_logger(logging_level, logs_output_file_path=None, logs_rotate_when="midn
 
     # Create the file handler to log messages to a log file
     if logs_output_file_path is not None:
+        log_dir = os.path.dirname(logs_output_file_path)
+        if not os.path.exists(os.path.expanduser(log_dir)):
+            os.makedirs(os.path.expanduser(log_dir))
         fileHandler = logging.handlers.TimedRotatingFileHandler(filename=os.path.expanduser(logs_output_file_path), when="midnight", backupCount=7)
         fileHandler.setLevel(logging.DEBUG)
         fileHandler.setFormatter(formatter)

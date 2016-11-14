@@ -1,34 +1,33 @@
-__author__ = 'robertsanders'
-
-# http://stackoverflow.com/questions/372042/difference-between-abstract-class-and-interface-in-python
-
 
 class BaseMetadataService:
 
-    @classmethod
-    def get_failover_heartbeat(cls):
+    def initialize_metadata_source(self):
         raise NotImplementedError
 
-    @classmethod
-    def set_failover_heartbeat(cls):
+    def get_failover_heartbeat(self):
         raise NotImplementedError
 
-    @classmethod
-    def get_active_failover_node(cls):
+    def set_failover_heartbeat(self):
         raise NotImplementedError
 
-    @classmethod
-    def set_active_failover_node(cls, node):
+    def get_active_failover_node(self):
         raise NotImplementedError
 
-    @classmethod
-    def get_active_scheduler_node(cls):
+    def set_active_failover_node(self, node):
         raise NotImplementedError
 
-    @classmethod
-    def set_active_scheduler_node(cls, node):
+    def get_active_scheduler_node(self):
         raise NotImplementedError
 
-    @classmethod
-    def truncate(cls):
+    def set_active_scheduler_node(self, node):
         raise NotImplementedError
+
+    def clear(self):
+        raise NotImplementedError
+
+    def print_metadata(self):
+        print "Printing Metadata: "
+        print "=============================="
+        print "active_failover_node: " + str(self.get_active_failover_node())
+        print "active_scheduler_node: " + str(self.get_active_scheduler_node())
+        print "last_failover_heartbeat: " + str(self.get_failover_heartbeat())
