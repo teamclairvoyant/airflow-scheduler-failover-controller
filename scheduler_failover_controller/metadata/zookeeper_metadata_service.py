@@ -1,9 +1,6 @@
 from scheduler_failover_controller.utils import date_utils
 from scheduler_failover_controller.metadata.base_metadata_service import BaseMetadataService
-from kazoo.client import KazooClient
-
-# pip install kazoo
-# documentation: https://kazoo.readthedocs.io/en/latest/basic_usage.html
+from kazoo.client import KazooClient  # documentation: https://kazoo.readthedocs.io/en/latest/basic_usage.html
 
 
 class ZookeeperMetadataService(BaseMetadataService):

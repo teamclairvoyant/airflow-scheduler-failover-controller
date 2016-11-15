@@ -96,6 +96,11 @@ class Configuration:
         return self.get_scheduler_failover_config("AIRFLOW_SCHEDULER_STOP_COMMAND")
 
     def add_default_scheduler_failover_configs_to_airflow_configs(self):
-        airflow_config_file = open(self.airflow_config_file_path, 'w')
-        if "[scheduler_failover]" not in airflow_config_file.read():
-            airflow_config_file.write(DEFAULT_SCHEDULER_FAILOVER_CONTROLLER_CONFIGS)
+        with open(self.airflow_config_file_path, 'r') as airflow_config_file:
+            if "[scheduler_failover]" not in airflow_config_file.read():
+                print "Adding Scheduler Failover configs to Airflow config file..."
+                with open(self.airflow_config_file_path, "a") as airflow_config_file_to_append:
+                    airflow_config_file_to_append.write(DEFAULT_SCHEDULER_FAILOVER_CONTROLLER_CONFIGS)
+                    print "Finished adding Scheduler Failover configs to Airflow config file."
+            else:
+                print "[scheduler_failover] section already exists. Skipping adding Scheduler Failover configs."

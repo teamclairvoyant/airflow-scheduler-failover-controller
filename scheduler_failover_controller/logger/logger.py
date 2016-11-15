@@ -15,20 +15,24 @@ def get_logger(logging_level, logs_output_file_path=None, logs_rotate_when="midn
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     # Create the stream handler to log messages to the console
-    streamHandler = logging.StreamHandler()
-    streamHandler.setLevel(logging.DEBUG)
-    streamHandler.setFormatter(formatter)
-    logger.addHandler(streamHandler)
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(logging.DEBUG)
+    stream_handler.setFormatter(formatter)
+    logger.addHandler(stream_handler)
 
     # Create the file handler to log messages to a log file
     if logs_output_file_path is not None:
         log_dir = os.path.dirname(logs_output_file_path)
         if not os.path.exists(os.path.expanduser(log_dir)):
             os.makedirs(os.path.expanduser(log_dir))
-        fileHandler = logging.handlers.TimedRotatingFileHandler(filename=os.path.expanduser(logs_output_file_path), when="midnight", backupCount=7)
-        fileHandler.setLevel(logging.DEBUG)
-        fileHandler.setFormatter(formatter)
-        logger.addHandler(fileHandler)
+        file_handler = logging.handlers.TimedRotatingFileHandler(
+            filename=os.path.expanduser(logs_output_file_path),
+            when=logs_rotate_when,
+            backupCount=logs_rotate_backup_count
+        )
+        file_handler.setLevel(logging.DEBUG)
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
 
     return logger
 
