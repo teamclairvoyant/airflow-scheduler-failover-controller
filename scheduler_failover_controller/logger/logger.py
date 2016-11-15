@@ -12,13 +12,12 @@ def get_logger(logging_level, logs_output_file_path=None, logs_rotate_when="midn
     logger.setLevel(logging_level)
 
     # Create logging format
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter('[%(asctime)s] {%(name)s:%(lineno)d} - %(levelname)s - %(message)s')
 
     # Create the stream handler to log messages to the console
-    stream_handler = logging.StreamHandler()
-    stream_handler.setLevel(logging.DEBUG)
-    stream_handler.setFormatter(formatter)
-    logger.addHandler(stream_handler)
+    # stream_handler = logging.StreamHandler()
+    # stream_handler.setFormatter(formatter)
+    # logger.addHandler(stream_handler)
 
     # Create the file handler to log messages to a log file
     if logs_output_file_path is not None:
@@ -30,7 +29,6 @@ def get_logger(logging_level, logs_output_file_path=None, logs_rotate_when="midn
             when=logs_rotate_when,
             backupCount=logs_rotate_backup_count
         )
-        file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
 

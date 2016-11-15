@@ -1,13 +1,20 @@
 import os
 import ConfigParser
+import socket
 import sys
 import logging
 
 
+def get_airflow_home_dir():
+    return os.environ['AIRFLOW_HOME'] if "AIRFLOW_HOME" in os.environ else os.path.expanduser("~/airflow")
+
+DEFAULT_AIRFLOW_HOME_DIR = get_airflow_home_dir()
+DEFAULT_METADATA_SERVICE_TYPE = "SQLMetadataService"
 DEFAULT_POLL_FREQUENCY = 10
+DEFAULT_LOGGING_LEVEL = "INFO"
+DEFAULT_RETRY_COUNT_BEFORE_ALERTING = 5
 
 DEFAULT_SCHEDULER_FAILOVER_CONTROLLER_CONFIGS = """
-
 [scheduler_failover]
 
 # List of potential nodes that can act as Schedulers (Comma Separated List)
@@ -16,7 +23,7 @@ scheduler_nodes_in_cluster = localhost
 # The metadata service class that the failover controller should use. Choices include:
 # SQLMetadataService, ZookeeperMetadataService
 # Note: ZookeeperMetadataService requires you to install kazoo (pip install kazoo)
-metadata_service_type = SQLMetadataService
+metadata_service_type = """ + DEFAULT_METADATA_SERVICE_TYPE + """
 
 # If you're using the ZookeeperMetadataService, this property will identify the zookeeper nodes it will try to connect to
 metadata_service_zookeeper_nodes = localhost:2181
@@ -30,6 +37,22 @@ airflow_scheduler_start_command = "nohup airflow scheduler >> ~/airflow/logs/sch
 # Command to use when trying to stop a Scheduler instance on a node
 airflow_scheduler_stop_command = "for pid in `ps -ef | grep "airflow scheduler" | awk '{print $2}'` ; do kill -9 $pid ; done"
 
+# Logging Level. Choices include:
+# NOTSET, DEBUG, INFO, WARN, ERROR, CRITICAL
+logging_level = """ + str(DEFAULT_LOGGING_LEVEL) + """
+
+# Log Directory Location
+logging_dir =  """ + str(DEFAULT_AIRFLOW_HOME_DIR) + """/logs/scheduler_failover/
+
+# Log File Name
+logging_file_name = scheduler-failover-controller.log
+
+# Number of times to retry starting up the scheduler before it sends an alert
+retry_count_before_alerting = """ + str(DEFAULT_RETRY_COUNT_BEFORE_ALERTING) + """
+
+# Email address to send alerts to if the failover controller is unable to startup a scheduler
+alert_to_email = airflow@airflow.com
+
 """
 
 
@@ -37,7 +60,7 @@ class Configuration:
 
     def __init__(self, airflow_home_dir=None, airflow_config_file_path=None):
         if airflow_home_dir is None:
-            airflow_home_dir = os.environ['AIRFLOW_HOME'] if "AIRFLOW_HOME" in os.environ else os.path.expanduser("~/airflow")
+            airflow_home_dir = DEFAULT_AIRFLOW_HOME_DIR
         if airflow_config_file_path is None:
             airflow_config_file_path = airflow_home_dir + "/airflow.cfg"
         self.airflow_home_dir = airflow_home_dir
@@ -50,32 +73,43 @@ class Configuration:
         self.conf = ConfigParser.RawConfigParser()
         self.conf.read(airflow_config_file_path)
 
+    @staticmethod
+    def get_current_host():
+        return socket.gethostname()
+
     def get_airflow_home_dir(self):
         return self.airflow_home_dir
 
     def get_airflow_config_file_path(self):
         return self.airflow_config_file_path
 
-    def get_logging_level(self):
-        return logging.INFO
-
-    def get_logs_output_file_path(self):
-        log_dir = self.airflow_home_dir + "/logs/scheduler_failover/"
-        logs_file_name = "scheduler-failover-controller.log"
-        return log_dir + logs_file_name
-
     def get_config(self, section, option, default=None):
-        config_value = self.conf.get(section, option)
-        return config_value if config_value is not None else default
+        try:
+            config_value = self.conf.get(section, option)
+            return config_value if config_value is not None else default
+        except:
+            pass
+        return default
 
     def get_scheduler_failover_config(self, option, default=None):
         return self.get_config("scheduler_failover", option, default)
+
+    def get_smtp_config(self, option, default=None):
+        return self.get_config("smtp", option, default)
+
+    def get_logging_level(self):
+        return logging.getLevelName(self.get_scheduler_failover_config("LOGGING_LEVEL", DEFAULT_LOGGING_LEVEL))
+
+    def get_logs_output_file_path(self):
+        logging_dir = self.get_scheduler_failover_config("LOGGING_DIR")
+        logging_file_name = self.get_scheduler_failover_config("LOGGING_FILE_NAME")
+        return logging_dir + logging_file_name if logging_dir is not None and logging_file_name is not None else None
 
     def get_sql_alchemy_conn(self):
         return self.get_config("core", "SQL_ALCHEMY_CONN")
 
     def get_metadata_type(self):
-        return self.get_scheduler_failover_config("METADATA_SERVICE_TYPE", "SQLMetadataService")
+        return self.get_scheduler_failover_config("METADATA_SERVICE_TYPE", DEFAULT_METADATA_SERVICE_TYPE)
 
     def get_metadata_service_zookeeper_nodes(self):
         return self.get_scheduler_failover_config("METADATA_SERVICE_ZOOKEEPER_NODES")
@@ -94,6 +128,33 @@ class Configuration:
 
     def get_airflow_scheduler_stop_command(self):
         return self.get_scheduler_failover_config("AIRFLOW_SCHEDULER_STOP_COMMAND")
+
+    def get_airflow_smtp_host(self):
+        return self.get_smtp_config("SMTP_HOST")
+
+    def get_airflow_smtp_starttls(self):
+        return self.get_smtp_config("SMTP_STARTTLS")
+
+    def get_airflow_smtp_ssl(self):
+        return self.get_smtp_config("SMTP_SSL")
+
+    def get_airflow_smtp_user(self):
+        return self.get_smtp_config("SMTP_USER")
+
+    def get_airflow_smtp_port(self):
+        return self.get_smtp_config("SMTP_PORT")
+
+    def get_airflow_smtp_password(self):
+        return self.get_smtp_config("SMTP_PASSWORD")
+
+    def get_airflow_smtp_mail_from(self):
+        return self.get_smtp_config("SMTP_MAIL_FROM")
+
+    def get_retry_count_before_alerting(self):
+        return int(self.get_scheduler_failover_config("RETRY_COUNT_BEFORE_ALERTING", DEFAULT_RETRY_COUNT_BEFORE_ALERTING))
+
+    def get_alert_to_email(self):
+        return self.get_scheduler_failover_config("ALERT_TO_EMAIL")
 
     def add_default_scheduler_failover_configs_to_airflow_configs(self):
         with open(self.airflow_config_file_path, 'r') as airflow_config_file:

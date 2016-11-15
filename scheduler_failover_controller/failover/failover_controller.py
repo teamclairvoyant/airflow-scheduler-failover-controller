@@ -1,29 +1,30 @@
-from scheduler_failover_controller.utils import ssh_utils
 from scheduler_failover_controller.utils.date_utils import get_datetime_as_str
 import sys
 import traceback
 import re
-import socket
 import datetime
 import time
-from scheduler_failover_controller.utils.ssh_utils import SSHUtils
 
 
 class FailoverController:
 
-    IS_FAILOVER_CONTROLLER_ACTIVE = False
+    IS_FAILOVER_CONTROLLER_ACTIVE = False   # Set to False in the beginning and then set to True as it becomes active
+    RETRY_COUNT = 0                         # Set to 0 in the beginning and then is incremented
+    LATEST_FAILED_STATUS_MESSAGE = None
+    LATEST_FAILED_START_MESSAGE = None
+    LATEST_FAILED_SHUTDOWN_MESSAGE = None
 
-    def __init__(self, scheduler_nodes_in_cluster, airflow_scheduler_start_command, airflow_scheduler_stop_command, poll_frequency, metadata_service, logger):
-        self.scheduler_nodes_in_cluster = scheduler_nodes_in_cluster
-        self.airflow_scheduler_start_command = airflow_scheduler_start_command
-        self.airflow_scheduler_stop_command = airflow_scheduler_stop_command
-        self.poll_frequency = poll_frequency
+    def __init__(self, configuration, command_runner, metadata_service, emailer, logger):
+        self.current_host = configuration.get_current_host()
+        self.scheduler_nodes_in_cluster = configuration.get_scheduler_nodes_in_cluster()
+        self.airflow_scheduler_start_command = configuration.get_airflow_scheduler_start_command()
+        self.airflow_scheduler_stop_command = configuration.get_airflow_scheduler_stop_command()
+        self.poll_frequency = configuration.get_poll_frequency()
+        self.retry_count_before_alerting = configuration.get_retry_count_before_alerting()
+        self.command_runner = command_runner
         self.metadata_service = metadata_service
+        self.emailer = emailer
         self.logger = logger
-
-        self.current_host = self.get_current_host()
-
-        self.ssh_utils = SSHUtils(logger)
 
     def poll(self):
         self.logger.info("--------------------------------------")
@@ -99,24 +100,29 @@ class FailoverController:
                                 self.logger.critical("New Active Scheduler Node is set to '" + active_scheduler_node + "'")
                                 break
                         if not is_successful:
-                            self.logger.error("Tried to start up a Scheduler on a STANDBY but all failed. Retrying on next polling.")
-                            # todo: this should send out an email alert to let people know that the failover controller couldn't startup a scheduler
+                            self.RETRY_COUNT += 1
+                            self.logger.error("Tried to start up a Scheduler on a STANDBY but all failed. Retrying on next polling. retry count: '" + str(self.RETRY_COUNT) + "'")
                         self.logger.critical("Finished search for a new Active Scheduler Node")
                     else:
                         self.logger.critical("Confirmed the Scheduler is now running")
                 else:
+                    self.RETRY_COUNT = 0
                     self.logger.info("Checking if scheduler instances are running on STANDBY nodes...")
                     for standby_node in self.get_standby_nodes(active_scheduler_node):
                         if self.is_scheduler_running(standby_node):
                             self.logger.critical("There is a Scheduler running on a STANDBY node '" + standby_node + "'. Shutting Down that Scheduler.")
                             self.shutdown_scheduler(standby_node)
                     self.logger.info("Finished checking if scheduler instances are running on STANDBY nodes")
+
+                if self.RETRY_COUNT == self.retry_count_before_alerting:
+                    self.emailer.send_alert(
+                        current_host=self.current_host,
+                        retry_count=self.RETRY_COUNT,
+                        latest_status_message=self.LATEST_FAILED_STATUS_MESSAGE,
+                        latest_start_message=self.LATEST_FAILED_START_MESSAGE
+                    )
         else:
             self.logger.info("This Failover Controller on STANDBY")
-
-    @staticmethod
-    def get_current_host():
-        return socket.gethostname()
 
     def get_standby_nodes(self, active_scheduler_node):
         standby_nodes = []
@@ -129,8 +135,9 @@ class FailoverController:
         self.logger.info("Starting to Check if Scheduler on host '" + str(host) + "' is running...")
 
         is_running = False
-        output = self.ssh_utils.run_command_through_ssh(host, "ps -eaf | grep 'airflow scheduler'")
-        if output is not None:
+        is_successful, output = self.command_runner.run_command(host, "ps -eaf | grep 'airflow scheduler'")
+        self.LATEST_FAILED_STATUS_MESSAGE = output
+        if is_successful:
             active_list = []
             output = output.split('\n')
             for line in output:
@@ -143,7 +150,7 @@ class FailoverController:
 
             is_running = active_list_length > 0
         else:
-            self.logger.critical("SSH Run command returned None.")
+            self.logger.critical("is_scheduler_running check failed")
 
         self.logger.info("Finished Checking if Scheduler on host '" + str(host) + "' is running. is_running: " + str(is_running))
 
@@ -151,12 +158,14 @@ class FailoverController:
 
     def startup_scheduler(self, host):
         self.logger.info("Starting Scheduler on host '" + str(host) + "'...")
-        self.ssh_utils.run_command_through_ssh(host, self.airflow_scheduler_start_command)
+        is_successful, output = self.command_runner.run_command(host, self.airflow_scheduler_start_command)
+        self.LATEST_FAILED_START_MESSAGE = output
         self.logger.info("Finished starting Scheduler on host '" + str(host) + "'")
 
     def shutdown_scheduler(self, host):
         self.logger.critical("Starting to shutdown Scheduler on host '" + host + "'...")
-        self.ssh_utils.run_command_through_ssh(host, self.airflow_scheduler_stop_command)
+        is_successful, output = self.command_runner.run_command(host, self.airflow_scheduler_stop_command)
+        self.LATEST_FAILED_SHUTDOWN_MESSAGE = output
         self.logger.critical("Finished shutting down Scheduler on host '" + host + "'")
 
     def search_for_active_scheduler_node(self):
@@ -186,9 +195,8 @@ class FailoverController:
 
     def set_this_failover_controller_as_active(self):
         self.logger.critical("Setting this Failover Node to ACTIVE")
-        current_host = self.get_current_host()
         try:
-            self.metadata_service.set_active_failover_node(current_host)
+            self.metadata_service.set_active_failover_node(self.current_host)
             self.metadata_service.set_failover_heartbeat()
             self.IS_FAILOVER_CONTROLLER_ACTIVE = True
             self.logger.critical("This Failover Controller is now ACTIVE.")
