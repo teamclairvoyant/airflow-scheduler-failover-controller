@@ -1,10 +1,12 @@
+from scheduler_failover_controller.utils import ssh_utils
+from scheduler_failover_controller.utils.date_utils import get_datetime_as_str
 import sys
 import traceback
 import re
 import socket
 import datetime
-from scheduler_failover_controller.utils import ssh_utils
-from scheduler_failover_controller.utils.date_utils import get_datetime_as_str
+import time
+from scheduler_failover_controller.utils.ssh_utils import SSHUtils
 
 
 class FailoverController:
@@ -20,6 +22,8 @@ class FailoverController:
         self.logger = logger
 
         self.current_host = self.get_current_host()
+
+        self.ssh_utils = SSHUtils(logger)
 
     def poll(self):
         self.logger.info("--------------------------------------")
@@ -80,7 +84,7 @@ class FailoverController:
                     self.logger.critical("Scheduler is not running on Active Scheduler Node '" + str(active_scheduler_node) + "'")
                     self.startup_scheduler(active_scheduler_node)
                     self.logger.info("Pausing for 2 seconds to allow the Scheduler to Start")
-                    datetime.time.sleep(2)
+                    time.sleep(2)
                     if not self.is_scheduler_running(active_scheduler_node):
                         self.logger.critical("Failed to restart Scheduler on Active Scheduler Node '" +str(active_scheduler_node) + "'")
                         self.logger.critical("Starting to search for a new Active Scheduler Node")
@@ -124,18 +128,22 @@ class FailoverController:
     def is_scheduler_running(self, host):
         self.logger.info("Starting to Check if Scheduler on host '" + str(host) + "' is running...")
 
-        output = ssh_utils.run_command_through_ssh(host, "ps -eaf | grep 'airflow scheduler'")
-        active_list = []
-        output = output.split('\n')
-        for line in output:
-            if not re.search(r'\bgrep\b', line):
-                active_list.append(line)
+        is_running = False
+        output = self.ssh_utils.run_command_through_ssh(host, "ps -eaf | grep 'airflow scheduler'")
+        if output is not None:
+            active_list = []
+            output = output.split('\n')
+            for line in output:
+                if not re.search(r'grep', line):
+                    active_list.append(line)
 
-        active_list_length = len(filter(None, active_list))
+            active_list_length = len(filter(None, active_list))
 
-        # todo: If there's more then one scheduler running this should kill off the other schedulers
+            # todo: If there's more then one scheduler running this should kill off the other schedulers
 
-        is_running = active_list_length > 0
+            is_running = active_list_length > 0
+        else:
+            self.logger.critical("SSH Run command returned None.")
 
         self.logger.info("Finished Checking if Scheduler on host '" + str(host) + "' is running. is_running: " + str(is_running))
 
@@ -143,12 +151,12 @@ class FailoverController:
 
     def startup_scheduler(self, host):
         self.logger.info("Starting Scheduler on host '" + str(host) + "'...")
-        ssh_utils.run_command_through_ssh(host, self.airflow_scheduler_start_command)
+        self.ssh_utils.run_command_through_ssh(host, self.airflow_scheduler_start_command)
         self.logger.info("Finished starting Scheduler on host '" + str(host) + "'")
 
     def shutdown_scheduler(self, host):
         self.logger.critical("Starting to shutdown Scheduler on host '" + host + "'...")
-        ssh_utils.run_command_through_ssh(host, self.airflow_scheduler_stop_command)
+        self.ssh_utils.run_command_through_ssh(host, self.airflow_scheduler_stop_command)
         self.logger.critical("Finished shutting down Scheduler on host '" + host + "'")
 
     def search_for_active_scheduler_node(self):

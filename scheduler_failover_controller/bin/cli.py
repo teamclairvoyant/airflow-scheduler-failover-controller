@@ -6,6 +6,7 @@ from scheduler_failover_controller.failover.failover_controller import FailoverC
 from scheduler_failover_controller.logger.logger import get_logger
 from scheduler_failover_controller.app import main
 from scheduler_failover_controller.utils import ssh_utils
+from scheduler_failover_controller.utils.ssh_utils import SSHUtils
 
 configuration = Configuration()
 logger = get_logger(
@@ -38,6 +39,7 @@ def init(args):
 
 def test_connection(args):
     scheduler_nodes_in_cluster = configuration.get_scheduler_nodes_in_cluster()
+    ssh_utils = SSHUtils(logger)
     for host in scheduler_nodes_in_cluster:
         print "Testing Connection for host '" + str(host) + "'"
         print ssh_utils.run_command_through_ssh(host, "echo 'Connection Succeeded'")
