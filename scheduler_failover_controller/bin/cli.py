@@ -36,8 +36,7 @@ def get_all_scheduler_failover_controller_objects():
 
 def init(args):
     configuration.add_default_scheduler_failover_configs_to_airflow_configs()
-    print "Finished Initializing Configurations to allow Scheduler Failover Controller to run"
-    print "Please update with your desired configurations"
+    print "Finished Initializing Configurations to allow Scheduler Failover Controller to run. Please update the airflow.cfg with your desired configurations."
 
 
 def test_connection(args):

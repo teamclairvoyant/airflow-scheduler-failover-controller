@@ -22,7 +22,7 @@ scheduler_nodes_in_cluster = localhost
 
 # The metadata service class that the failover controller should use. Choices include:
 # SQLMetadataService, ZookeeperMetadataService
-# Note: ZookeeperMetadataService requires you to install kazoo (pip install kazoo)
+# Note: SQLMetadataService will use your sql_alchemy_conn config in the airflow.cfg file to connect to SQL
 metadata_service_type = """ + DEFAULT_METADATA_SERVICE_TYPE + """
 
 # If you're using the ZookeeperMetadataService, this property will identify the zookeeper nodes it will try to connect to
