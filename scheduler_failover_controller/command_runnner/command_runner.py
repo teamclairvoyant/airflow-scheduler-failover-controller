@@ -12,11 +12,12 @@ class CommandRunner:
         self.logger = logger
 
     def run_command(self, host, base_command):
-        if host == self.local_hostname or host in self.HOST_LIST_TO_RUN_LOCAL:
+        if False:  # host == self.local_hostname or host in self.HOST_LIST_TO_RUN_LOCAL:  # todo: temporarily disabling this
             return self._run_local_command(base_command)
         else:
             return self._run_ssh_command(host, base_command)
 
+    # todo: Fix this function
     def _run_local_command(self, base_command):
         self.logger.debug("Running command as Local command")
         return self._run_split_command(
