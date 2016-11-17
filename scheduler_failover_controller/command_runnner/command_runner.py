@@ -1,7 +1,5 @@
 import subprocess
 
-__author__ = 'robertsanders'
-
 
 class CommandRunner:
 
@@ -12,6 +10,7 @@ class CommandRunner:
         self.logger = logger
 
     def run_command(self, host, base_command):
+        self.logger.debug("Running Command: " + str(base_command))
         if False:  # host == self.local_hostname or host in self.HOST_LIST_TO_RUN_LOCAL:  # todo: temporarily disabling this
             return self._run_local_command(base_command)
         else:
@@ -37,9 +36,11 @@ class CommandRunner:
         is_successful = True
         output = ""
         if process.stderr is not None:
-            output += process.stderr.readline()
-            self.logger.critical("Run Command stderr output: " + output)
-            is_successful = False
+            stderr_output = process.stderr.readline().strip()
+            if stderr_output and stderr_output != "":
+                output += stderr_output
+                self.logger.error("Run Command stderr output: " + stderr_output)
+                is_successful = False
         if process.stdout is not None:
             output += process.stdout.readline()
         output = output.replace("\r\n", "|").replace("\n", "|").rstrip("|")
