@@ -44,22 +44,22 @@ class FailoverController:
             if active_failover_node is not None:
                 self.logger.info("There already is an active Failover Controller '" + str(active_failover_node)+ "'")
                 if active_failover_node == self.current_host:
-                    self.logger.critical("Discovered this Failover Controller should be active because Active Failover Node is this nodes host")
+                    self.logger.warning("Discovered this Failover Controller should be active because Active Failover Node is this nodes host")
                     self.set_this_failover_controller_as_active()
 
                 elif last_failover_heartbeat is None:
-                    self.logger.critical("Last Failover Heartbeat is None")
+                    self.logger.warning("Last Failover Heartbeat is None")
                     self.set_this_failover_controller_as_active()
                     active_failover_node = self.metadata_service.get_active_failover_node()
                 else:
                     failover_heartbeat_diff = (datetime.datetime.now() - last_failover_heartbeat).seconds
                     max_age = self.poll_frequency * 2
                     if failover_heartbeat_diff > max_age:
-                        self.logger.critical("Failover Heartbeat '" + get_datetime_as_str(last_failover_heartbeat) + "' for Active Failover controller '" + str(active_failover_node) + "' is older then max age of " + str(max_age) + " seconds")
+                        self.logger.warning("Failover Heartbeat '" + get_datetime_as_str(last_failover_heartbeat) + "' for Active Failover controller '" + str(active_failover_node) + "' is older then max age of " + str(max_age) + " seconds")
                         self.set_this_failover_controller_as_active()
                         active_failover_node = self.metadata_service.get_active_failover_node()
-            else:  # if the the
-                self.logger.critical("Failover Node is None")
+            else:
+                self.logger.warning("Failover Node is None")
                 self.set_this_failover_controller_as_active()
                 active_failover_node = self.metadata_service.get_active_failover_node()
 
@@ -69,7 +69,7 @@ class FailoverController:
 
             # Check to make sure this Failover Controller
             if active_failover_node != self.current_host:
-                self.logger.critical("Discovered this Failover Controller should not be active because Active Failover Node is not this nodes host")
+                self.logger.warning("Discovered this Failover Controller should not be active because Active Failover Node is not this nodes host")
                 self.set_this_failover_controller_as_inactive()
 
             else:
@@ -77,40 +77,45 @@ class FailoverController:
                 self.metadata_service.set_failover_heartbeat()
 
                 if active_scheduler_node is None:
-                    self.logger.critical("Active Scheduler is None")
+                    self.logger.warning("Active Scheduler is None")
                     active_scheduler_node = self.search_for_active_scheduler_node()
                     self.metadata_service.set_active_scheduler_node(active_scheduler_node)
+                else:
+                    if active_scheduler_node not in self.scheduler_nodes_in_cluster:
+                        self.logger.warning("Active Scheduler is not in scheduler_nodes_in_cluster list. Searching for new Active Scheduler Node.")
+                        active_scheduler_node = self.search_for_active_scheduler_node()
+                        self.metadata_service.set_active_scheduler_node(active_scheduler_node)
 
                 if not self.is_scheduler_running(active_scheduler_node):
-                    self.logger.critical("Scheduler is not running on Active Scheduler Node '" + str(active_scheduler_node) + "'")
+                    self.logger.warning("Scheduler is not running on Active Scheduler Node '" + str(active_scheduler_node) + "'")
                     self.startup_scheduler(active_scheduler_node)
                     self.logger.info("Pausing for 2 seconds to allow the Scheduler to Start")
                     time.sleep(2)
                     if not self.is_scheduler_running(active_scheduler_node):
-                        self.logger.critical("Failed to restart Scheduler on Active Scheduler Node '" +str(active_scheduler_node) + "'")
-                        self.logger.critical("Starting to search for a new Active Scheduler Node")
+                        self.logger.warning("Failed to restart Scheduler on Active Scheduler Node '" +str(active_scheduler_node) + "'")
+                        self.logger.warning("Starting to search for a new Active Scheduler Node")
                         is_successful = False
                         for standby_node in self.get_standby_nodes(active_scheduler_node):
-                            self.logger.critical("Trying to startup Scheduler on STANDBY node '" + str(standby_node) + "'")
+                            self.logger.warning("Trying to startup Scheduler on STANDBY node '" + str(standby_node) + "'")
                             self.startup_scheduler(standby_node)
                             if self.is_scheduler_running(standby_node):
                                 is_successful = True
                                 active_scheduler_node = standby_node
                                 self.metadata_service.set_active_scheduler_node(active_scheduler_node)
-                                self.logger.critical("New Active Scheduler Node is set to '" + active_scheduler_node + "'")
+                                self.logger.warning("New Active Scheduler Node is set to '" + active_scheduler_node + "'")
                                 break
                         if not is_successful:
                             self.RETRY_COUNT += 1
                             self.logger.error("Tried to start up a Scheduler on a STANDBY but all failed. Retrying on next polling. retry count: '" + str(self.RETRY_COUNT) + "'")
-                        self.logger.critical("Finished search for a new Active Scheduler Node")
+                        self.logger.warning("Finished search for a new Active Scheduler Node")
                     else:
-                        self.logger.critical("Confirmed the Scheduler is now running")
+                        self.logger.warning("Confirmed the Scheduler is now running")
                 else:
                     self.RETRY_COUNT = 0
                     self.logger.info("Checking if scheduler instances are running on STANDBY nodes...")
                     for standby_node in self.get_standby_nodes(active_scheduler_node):
                         if self.is_scheduler_running(standby_node):
-                            self.logger.critical("There is a Scheduler running on a STANDBY node '" + standby_node + "'. Shutting Down that Scheduler.")
+                            self.logger.warning("There is a Scheduler running on a STANDBY node '" + standby_node + "'. Shutting Down that Scheduler.")
                             self.shutdown_scheduler(standby_node)
                     self.logger.info("Finished checking if scheduler instances are running on STANDBY nodes")
 
@@ -146,7 +151,7 @@ class FailoverController:
 
             active_list_length = len(filter(None, active_list))
 
-            # todo: If there's more then one scheduler running this should kill off the other schedulers
+            # todo: If there's more then one scheduler running this should kill off the other schedulers. MIGHT ALREADY BE HANDLED. DOUBLE CHECK.
 
             is_running = active_list_length > 0
         else:
@@ -163,10 +168,10 @@ class FailoverController:
         self.logger.info("Finished starting Scheduler on host '" + str(host) + "'")
 
     def shutdown_scheduler(self, host):
-        self.logger.critical("Starting to shutdown Scheduler on host '" + host + "'...")
+        self.logger.warning("Starting to shutdown Scheduler on host '" + host + "'...")
         is_successful, output = self.command_runner.run_command(host, self.airflow_scheduler_stop_command)
         self.LATEST_FAILED_SHUTDOWN_MESSAGE = output
-        self.logger.critical("Finished shutting down Scheduler on host '" + host + "'")
+        self.logger.warning("Finished shutting down Scheduler on host '" + host + "'")
 
     def search_for_active_scheduler_node(self):
         active_scheduler_node = None
@@ -177,7 +182,7 @@ class FailoverController:
                 nodes_with_scheduler_running.append(node)
         self.logger.info("Nodes with a scheduler currently running on it: '" + str(nodes_with_scheduler_running) + "'")
         if len(nodes_with_scheduler_running) > 1:
-            self.logger.critical("Multiple nodes have a scheduler running on it. Shutting down all except the first one.")
+            self.logger.warning("Multiple nodes have a scheduler running on it. Shutting down all except the first one.")
             for index, host in enumerate(nodes_with_scheduler_running):
                 if index != 0:
                     self.shutdown_scheduler(host)
@@ -194,17 +199,17 @@ class FailoverController:
         return active_scheduler_node
 
     def set_this_failover_controller_as_active(self):
-        self.logger.critical("Setting this Failover Node to ACTIVE")
+        self.logger.warning("Setting this Failover Node to ACTIVE")
         try:
             self.metadata_service.set_active_failover_node(self.current_host)
             self.metadata_service.set_failover_heartbeat()
             self.IS_FAILOVER_CONTROLLER_ACTIVE = True
-            self.logger.critical("This Failover Controller is now ACTIVE.")
+            self.logger.warning("This Failover Controller is now ACTIVE.")
         except Exception, e:
             self.IS_FAILOVER_CONTROLLER_ACTIVE = False
             self.logger.error("Failed to set Failover Controller as ACTIVE. Trying again next heart beat.")
             traceback.print_exc(file=sys.stdout)
 
     def set_this_failover_controller_as_inactive(self):
-        self.logger.critical("Setting this Failover Node to INACTIVE")
+        self.logger.warning("Setting this Failover Node to INACTIVE")
         self.IS_FAILOVER_CONTROLLER_ACTIVE = False
