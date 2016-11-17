@@ -12,7 +12,7 @@ def get_logger(logging_level, logs_output_file_path=None, logs_rotate_when="midn
     logger.setLevel(logging_level)
 
     # Create logging format
-    formatter = logging.Formatter('[%(asctime)s] {%(name)s:%(lineno)d} - %(levelname)s - %(message)s')
+    formatter = logging.Formatter('[%(asctime)s] {%(filename)s:%(lineno)d} - %(levelname)s - %(message)s')
 
     # Create the stream handler to log messages to the console
     # stream_handler = logging.StreamHandler()
