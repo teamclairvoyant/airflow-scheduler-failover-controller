@@ -102,7 +102,7 @@ usage: **scheduler_failover_controller** [-h]
 
 #### Startup as a background process
 
-    nohup scheduler_failover_controller start &
+    scheduler_failover_controller start > /dev/null &
 
 ### Status
 
