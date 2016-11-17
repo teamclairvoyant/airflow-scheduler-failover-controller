@@ -5,7 +5,7 @@ __author__ = 'robertsanders'
 
 class CommandRunner:
 
-    HOST_LIST_TO_RUN_LOCAL = ["localhost"]
+    HOST_LIST_TO_RUN_LOCAL = ["localhost", "127.0.0.1"]
 
     def __init__(self, local_hostname, logger):
         self.local_hostname = local_hostname
@@ -21,20 +21,18 @@ class CommandRunner:
     def _run_local_command(self, base_command):
         self.logger.debug("Running command as Local command")
         return self._run_split_command(
-            command_split=base_command,
-            shell=True
+            command_split=base_command
         )
 
     def _run_ssh_command(self, host, base_command):
         self.logger.debug("Running command as SSH command")
         command_split = ["ssh", host, base_command]
         return self._run_split_command(
-            command_split=command_split,
-            shell=False
+            command_split=command_split
         )
 
-    def _run_split_command(self, command_split, shell=True):
-        process = subprocess.Popen(command_split, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    def _run_split_command(self, command_split):
+        process = subprocess.Popen(command_split, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         process.wait()
         is_successful = True
         output = ""

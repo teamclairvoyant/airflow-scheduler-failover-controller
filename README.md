@@ -102,7 +102,7 @@ usage: **scheduler_failover_controller** [-h]
 
 #### Startup as a background process
 
-    scheduler_failover_controller start &
+    nohup scheduler_failover_controller start &
 
 ### Status
 
@@ -138,15 +138,25 @@ This is a step by step set of instructions you can take to get up and running wi
 
         scheduler_failover_controller test_connection
 
-6. Startup the Airflow Scheduler Failover Controller
+6. Startup the following Airflow Daemons
+
+    a. webserver
+    
+        nohup airflow webserver $* >> ~/airflow/logs/webserver.logs &
+    
+    b. workers (If you're using the CeleryExecutor)
+
+        nohup airflow worker $* >> ~/airflow/logs/celery.logs &
+
+7. Startup the Airflow Scheduler Failover Controller
 
     * See the above section entitled "Startup/Status/Shutdown Instructions"
     
-7. View the logs to ensure things are running correctly
+8. View the logs to ensure things are running correctly
 
     * Location of the logs can be determined by the 'logging_dir' configuration entry in the airflow.cfg 
     
-8. View the metadata to ensure things are being set correctly
+9. View the metadata to ensure things are being set correctly
 
         scheduler_failover_controller metadata
 
