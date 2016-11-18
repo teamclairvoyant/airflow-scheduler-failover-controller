@@ -6,17 +6,18 @@ class CommandRunner:
     HOST_LIST_TO_RUN_LOCAL = ["localhost", "127.0.0.1"]
 
     def __init__(self, local_hostname, logger):
+        logger.debug("Creating CommandRunner with Args: {'local_hostname':'" + str(local_hostname) + "', 'logger':'" + str(logger) + "'}")
         self.local_hostname = local_hostname
         self.logger = logger
 
     def run_command(self, host, base_command):
         self.logger.debug("Running Command: " + str(base_command))
-        if False:  # host == self.local_hostname or host in self.HOST_LIST_TO_RUN_LOCAL:  # todo: temporarily disabling this
+        # todo get _run_local_command(base_command) working
+        if False:  # host == self.local_hostname or host in self.HOST_LIST_TO_RUN_LOCAL:
             return self._run_local_command(base_command)
         else:
             return self._run_ssh_command(host, base_command)
 
-    # todo: Fix this function
     def _run_local_command(self, base_command):
         self.logger.debug("Running command as Local command")
         return self._run_split_command(

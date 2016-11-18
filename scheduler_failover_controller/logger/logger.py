@@ -32,5 +32,7 @@ def get_logger(logging_level, logs_output_file_path=None, logs_rotate_when="midn
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
 
+    logger.debug("Created Logger with Args: {'logging_level':" + str(logging_level) + ", 'logs_output_file_path':'" + str(logs_output_file_path) + "', 'logs_rotate_when': '" + logs_rotate_when + "', 'logs_rotate_backup_count':" + str(logs_rotate_backup_count) + "}")
+
     return logger
 

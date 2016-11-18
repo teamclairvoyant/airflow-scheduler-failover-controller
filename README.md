@@ -84,11 +84,13 @@ usage: **scheduler_failover_controller** [-h]
 
         pip uninstall scheduler_failover_controller
 
-2. Get the bin file location and use this value as the {BIN_CLI_FILE_PATH} placeholder
+2. If you ran the installation for development, follow these steps:
+
+    a. Get the bin file location and use this value as the {BIN_CLI_FILE_PATH} placeholder
 
         which scheduler_failover_controller
 
-3. Remove the bin file
+    b. Remove the bin file
 
         rm {BIN_CLI_FILE_PATH}
 
@@ -155,6 +157,8 @@ This is a step by step set of instructions you can take to get up and running wi
 8. View the logs to ensure things are running correctly
 
     * Location of the logs can be determined by the 'logging_dir' configuration entry in the airflow.cfg 
+    
+    * Note: Logs are set by default to rotate at midnight and only keep 7 days worth of backups. This can be overridden in the configuration files.
     
 9. View the metadata to ensure things are being set correctly
 

@@ -12,6 +12,8 @@ DEFAULT_AIRFLOW_HOME_DIR = get_airflow_home_dir()
 DEFAULT_METADATA_SERVICE_TYPE = "SQLMetadataService"
 DEFAULT_POLL_FREQUENCY = 10
 DEFAULT_LOGGING_LEVEL = "INFO"
+DEFAULT_LOGS_ROTATE_WHEN = "midnight"
+DEFAULT_LOGS_ROTATE_BACKUP_COUNT = 7
 DEFAULT_RETRY_COUNT_BEFORE_ALERTING = 5
 
 DEFAULT_SCHEDULER_FAILOVER_CONTROLLER_CONFIGS = """
@@ -23,7 +25,7 @@ scheduler_nodes_in_cluster = localhost
 # The metadata service class that the failover controller should use. Choices include:
 # SQLMetadataService, ZookeeperMetadataService
 # Note: SQLMetadataService will use your sql_alchemy_conn config in the airflow.cfg file to connect to SQL
-metadata_service_type = """ + DEFAULT_METADATA_SERVICE_TYPE + """
+metadata_service_type = """ + str(DEFAULT_METADATA_SERVICE_TYPE) + """
 
 # If you're using the ZookeeperMetadataService, this property will identify the zookeeper nodes it will try to connect to
 metadata_service_zookeeper_nodes = localhost:2181
@@ -45,7 +47,14 @@ logging_level = """ + str(DEFAULT_LOGGING_LEVEL) + """
 logging_dir =  """ + str(DEFAULT_AIRFLOW_HOME_DIR) + """/logs/scheduler_failover/
 
 # Log File Name
-logging_file_name = scheduler-failover-controller.log
+logging_file_name = scheduler_failover_controller.log
+
+# When the logs should be rotated.
+# Documentation: https://docs.python.org/2/library/logging.handlers.html#logging.handlers.TimedRotatingFileHandler
+logs_rotate_when = """ + str(DEFAULT_LOGS_ROTATE_WHEN) + """
+
+# How many times the logs should be rotate before you clear out the old ones
+logs_rotate_backup_count = """ + str(DEFAULT_LOGS_ROTATE_BACKUP_COUNT) + """
 
 # Number of times to retry starting up the scheduler before it sends an alert
 retry_count_before_alerting = """ + str(DEFAULT_RETRY_COUNT_BEFORE_ALERTING) + """
@@ -152,6 +161,12 @@ class Configuration:
 
     def get_retry_count_before_alerting(self):
         return int(self.get_scheduler_failover_config("RETRY_COUNT_BEFORE_ALERTING", DEFAULT_RETRY_COUNT_BEFORE_ALERTING))
+
+    def get_logs_rotate_when(self):
+        return self.get_scheduler_failover_config("LOGS_ROTATE_WHEN", DEFAULT_LOGS_ROTATE_WHEN)
+
+    def get_logs_rotate_backup_count(self):
+        return int(self.get_scheduler_failover_config("LOGS_ROTATE_BACKUP_COUNT", DEFAULT_LOGS_ROTATE_BACKUP_COUNT))
 
     def get_alert_to_email(self):
         return self.get_scheduler_failover_config("ALERT_TO_EMAIL")

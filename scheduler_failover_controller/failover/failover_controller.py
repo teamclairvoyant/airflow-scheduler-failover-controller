@@ -15,6 +15,7 @@ class FailoverController:
     LATEST_FAILED_SHUTDOWN_MESSAGE = None
 
     def __init__(self, configuration, command_runner, metadata_service, emailer, logger):
+        logger.debug("Creating CommandRunner with Args: {'configuration':'" + str(configuration) + "', 'command_runner':'" + str(command_runner) + "', 'metadata_service':'" + str(metadata_service) + "', 'emailer':'" + str(emailer) + "', 'logger':'" + str(logger) + "'}")
         self.current_host = configuration.get_current_host()
         self.scheduler_nodes_in_cluster = configuration.get_scheduler_nodes_in_cluster()
         self.airflow_scheduler_start_command = configuration.get_airflow_scheduler_start_command()

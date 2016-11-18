@@ -11,7 +11,9 @@ from scheduler_failover_controller.app import main
 configuration = Configuration()
 logger = get_logger(
     logging_level=configuration.get_logging_level(),
-    logs_output_file_path=configuration.get_logs_output_file_path()
+    logs_output_file_path=configuration.get_logs_output_file_path(),
+    logs_rotate_when=configuration.get_logs_rotate_when(),
+    logs_rotate_backup_count=configuration.get_logs_rotate_backup_count()
 )
 current_host = configuration.get_current_host()
 command_runner = CommandRunner(current_host, logger)
@@ -22,7 +24,6 @@ def get_all_scheduler_failover_controller_objects():
     poll_frequency = configuration.get_poll_frequency()
     metadata_service = build_metadata_service(configuration, logger)
     emailer = Emailer(configuration.get_alert_to_email(), logger)
-
     failover_controller = FailoverController(
         configuration=configuration,
         command_runner=command_runner,
@@ -30,7 +31,6 @@ def get_all_scheduler_failover_controller_objects():
         emailer=emailer,
         logger=logger
     )
-
     return scheduler_nodes_in_cluster, poll_frequency, metadata_service, emailer, failover_controller
 
 

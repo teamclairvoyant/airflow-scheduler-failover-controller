@@ -5,7 +5,8 @@ from kazoo.client import KazooClient  # documentation: https://kazoo.readthedocs
 
 class ZookeeperMetadataService(BaseMetadataService):
 
-    def __init__(self, zookeeper_nodes, logger, zookeeper_base_bucket="/airflow/scheduler_failover"):
+    def __init__(self, zookeeper_nodes, logger, zookeeper_base_bucket="/scheduler_failover_controller"):
+        logger.debug("Creating MetadataServer (type:ZookeeperMetadataService) with Args: {'zookeeper_nodes':'" + str(zookeeper_nodes) + "', 'logger':'" + str(logger) + "', 'zookeeper_base_bucket':'" + str(zookeeper_base_bucket) + "'}")
         self.zookeeper_nodes = zookeeper_nodes
         self.zookeeper_base_bucket = zookeeper_base_bucket
         self.logger = logger

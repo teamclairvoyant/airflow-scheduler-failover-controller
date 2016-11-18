@@ -15,6 +15,7 @@ class Emailer:
     """
 
     def __init__(self, alert_to_email, logger):
+        logger.debug("Creating Emailer with Args: {'alert_to_email':'" + str(alert_to_email) + "', 'logger':'" + str(logger) + "'}")
         self.alert_to_email = alert_to_email
         self.logger = logger
         path, attr = configuration.get('email', 'EMAIL_BACKEND').rsplit('.', 1)

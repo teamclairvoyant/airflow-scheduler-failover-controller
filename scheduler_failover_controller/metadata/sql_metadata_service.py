@@ -20,6 +20,7 @@ class SQLMetadataService(BaseMetadataService):
     Session = None
 
     def __init__(self, sql_alchemy_conn, logger):
+        logger.debug("Creating MetadataServer (type:SQLMetadataService) with Args: {'sql_alchemy_conn':'" + str(sql_alchemy_conn) + "', 'logger':'" + str(logger) + "'}")
         self.sql_alchemy_conn = sql_alchemy_conn
         self.logger = logger
         engine_args = {}
