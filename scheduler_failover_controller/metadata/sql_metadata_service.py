@@ -10,7 +10,7 @@ Base = declarative_base()
 
 
 class SQLMetadata(Base):
-    __tablename__ = 'scheduler_failover'
+    __tablename__ = 'scheduler_failover_controller_metadata'
     key = Column(String(200), primary_key=True)
     value = Column(String(200), nullable=False)
 
