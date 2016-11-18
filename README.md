@@ -150,7 +150,7 @@ This is a step by step set of instructions you can take to get up and running wi
 
         nohup airflow worker $* >> ~/airflow/logs/celery.logs &
 
-7. Startup the Airflow Scheduler Failover Controller
+7. Startup the Airflow Scheduler Failover Controller on each node you would like acting as the Scheduler Failover Controller (ONE AT A TIME).
 
     * See the above section entitled "Startup/Status/Shutdown Instructions"
     
