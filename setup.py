@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages, Command
+from setuptools import setup, find_packages
 from scheduler_failover_controller import __version__
 
 
