@@ -1,7 +1,6 @@
 from scheduler_failover_controller.utils.date_utils import get_datetime_as_str
 import sys
 import traceback
-import re
 import datetime
 import time
 
@@ -15,7 +14,7 @@ class FailoverController:
     LATEST_FAILED_SHUTDOWN_MESSAGE = None
 
     def __init__(self, configuration, command_runner, metadata_service, emailer, logger):
-        logger.debug("Creating CommandRunner with Args: {'configuration':'" + str(configuration) + "', 'command_runner':'" + str(command_runner) + "', 'metadata_service':'" + str(metadata_service) + "', 'emailer':'" + str(emailer) + "', 'logger':'" + str(logger) + "'}")
+        logger.debug("Creating CommandRunner with Args - configuration: {configuration}, command_runner: {command_runner}, metadata_service: {metadata_service}, emailer: {emailer}, logger: {logger}".format(**locals()))
         self.current_host = configuration.get_current_host()
         self.scheduler_nodes_in_cluster = configuration.get_scheduler_nodes_in_cluster()
         self.airflow_scheduler_start_command = configuration.get_airflow_scheduler_start_command()
@@ -140,14 +139,17 @@ class FailoverController:
     def is_scheduler_running(self, host):
         self.logger.info("Starting to Check if Scheduler on host '" + str(host) + "' is running...")
 
+        process_check_command = "ps -eaf"
+        grep_command = "grep 'airflow scheduler'"
+        grep_command_no_quotes = grep_command.replace("'", "")
+        full_status_check_command = process_check_command + " | " + grep_command  # ps -eaf | grep 'airflow scheduler'
         is_running = False
-        is_successful, output = self.command_runner.run_command(host, "ps -eaf | grep 'airflow scheduler'")
+        is_successful, output = self.command_runner.run_command(host, full_status_check_command)
         self.LATEST_FAILED_STATUS_MESSAGE = output
         if is_successful:
             active_list = []
-            output = output.split('\n')
             for line in output:
-                if not re.search(r'grep', line):
+                if line.strip() != "" and process_check_command not in line and grep_command not in line and grep_command_no_quotes not in line and full_status_check_command not in line:
                     active_list.append(line)
 
             active_list_length = len(filter(None, active_list))
