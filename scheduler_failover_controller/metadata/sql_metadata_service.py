@@ -20,7 +20,7 @@ class SQLMetadataService(BaseMetadataService):
     Session = None
 
     def __init__(self, sql_alchemy_conn, logger):
-        logger.debug("Creating MetadataServer (type:SQLMetadataService) with Args: {'sql_alchemy_conn':'" + str(sql_alchemy_conn) + "', 'logger':'" + str(logger) + "'}")
+        logger.debug("Creating MetadataServer (type:SQLMetadataService) with Args - sql_alchemy_conn: {sql_alchemy_conn}, logger: {logger}".format(**locals()))
         self.sql_alchemy_conn = sql_alchemy_conn
         self.logger = logger
         engine_args = {}
@@ -35,7 +35,6 @@ class SQLMetadataService(BaseMetadataService):
         except Exception, e:
             self.logger.info("Exception while Creating Metadata Table: " + str(e))
             self.logger.info("Table might already exist. Suppressing Exception.")
-
 
     def get_failover_heartbeat(self):
         session = self.Session()
