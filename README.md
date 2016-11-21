@@ -25,7 +25,7 @@ The Active ASFC will poll every 10 seconds to see if the scheduler is running on
 
 ## Installation
 
-### Development
+### Local Development
 
 In case you want to do development work on the project
 
@@ -44,7 +44,7 @@ In case you want to do development work on the project
 
 ### Production
 
-1. Select which version of the code you want to install and use this value as the {BRANCH_OR_TAG} placeholder:
+1. Select which version of the code you want to install and use this value as the {BRANCH_OR_TAG} placeholder. Current Options:
 
     * modularize-dev    - development version of the code
 
@@ -96,23 +96,43 @@ usage: **scheduler_failover_controller** [-h]
 
 ## Startup/Status/Shutdown Instructions
 
-### Startup
+### Quickstart
 
-#### Startup in the foreground
+#### Startup
+
+##### Startup in the foreground
 
     scheduler_failover_controller start
 
-#### Startup as a background process
+##### Startup as a background process
 
-    scheduler_failover_controller start > /dev/null &
+    nohup scheduler_failover_controller start > /dev/null &
 
-### Status
+#### Status
 
     ps -eaf | grep scheduler_failover_controller
 
-### Shutdown
+#### Shutdown
  
     for pid in `ps -ef | grep "scheduler_failover_controller" | awk '{print $2}'` ; do kill -9 $pid ; done
+
+### Systemd
+
+The Airflow Scheduler Failover Controller also allows you to control the process with systemd. The systemd files can be found under ${PROJECT_HOME}/scripts/systemd. Within this directory is a README.md file which describes how to deploy the systemd files. Bellow illustrates how to run the process after deploying the files.
+
+Note: **Run as Root**
+
+#### Startup
+
+    systemctl start scheduler_failover_controller
+    
+#### Status
+
+    systemctl status scheduler_failover_controller
+
+#### Shutdown
+
+    systemctl stop scheduler_failover_controller
 
 ## Getting Started
 
@@ -163,4 +183,25 @@ This is a step by step set of instructions you can take to get up and running wi
 9. View the metadata to ensure things are being set correctly
 
         scheduler_failover_controller metadata
+
+
+## Recommended Steps for a Better Deployment
+
+Above describes a quickstart approach. However, if you're looking for a better long term approach for using the Airflow Scheduler Failover Controller then you can follow the bellow steps.
+
+### Setup Systemd for Airflow
+
+Airflow provides scripts to help you control the airflow daemons through the **systemctl** command. It is recommended that you setup the airflow-scheduler, at least, for systemd. 
+  
+Go to https://github.com/apache/incubator-airflow/tree/master/scripts/systemd and follow the instructions in the README file to get it setup.
+
+### Update airflow.cfg configs to use the Systemd
+
+    airflow_scheduler_start_command = sudo systemctl restart airflow-scheduler
+    
+    airflow_scheduler_stop_command = sudo systemctl stop airflow-scheduler
+    
+### Setup the Airflow Scheduler Failover Controller to use Systemd
+
+Follow the instructions in ${PROJECT_HOME}/scripts/systemd/README.md to set it up.
 
