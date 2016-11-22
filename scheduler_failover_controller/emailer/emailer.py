@@ -1,23 +1,28 @@
-import importlib
 from airflow import configuration
-
-EMAIL_SUBJECT = "Airflow Alert - Scheduler Failover Controller Failed to Startup Scheduler"
-EMAIL_BODY = """
-The Scheduler Failover Controller failed to Restart the Scheduler on all Scheduler Hosts.<br/>
-<br/>
-Host Name: {0}<br/>
-Retry Count: {1}<br/>
-Latest Message from trying to get Status: {2}<br/>
-Latest Message from trying to Restart: {3}<br/>
-"""
+import scheduler_failover_controller.configuration as scheduler_failover_controller_configuration
+import importlib
 
 
 class Emailer:
 
-    def __init__(self, alert_to_email, logger):
-        logger.debug("Creating Emailer with Args - alert_to_email: {alert_to_email}, logger: {logger}".format(**locals()))
+    EMAIL_BODY = """
+    The Scheduler Failover Controller failed to Restart the Scheduler on all Scheduler Hosts.<br/>
+    <br/>
+    Host Name: {0}<br/>
+    Retry Count: {1}<br/>
+    Latest Message from trying to get Status: {2}<br/>
+    Latest Message from trying to Restart: {3}<br/>
+    """
+
+    def __init__(self, alert_to_email, logger, email_subject=None):
+        logger.debug("Creating Emailer with Args - alert_to_email: {alert_to_email}, logger: {logger}, email_subject: {email_subject}".format(**locals()))
         self.alert_to_email = alert_to_email
         self.logger = logger
+        if email_subject:
+            self.email_subject = email_subject
+        else:
+            self.email_subject = scheduler_failover_controller_configuration.DEFAULT_ALERT_EMAIL_SUBJECT
+            self.logger.debug("Email subject was not provided. Using Default value: " + str(self.email_subject))
         path, attr = configuration.get('email', 'EMAIL_BACKEND').rsplit('.', 1)
         module = importlib.import_module(path)
         self.email_backend = getattr(module, attr)
@@ -30,12 +35,12 @@ class Emailer:
             try:
                 self.email_backend(
                     self.alert_to_email,
-                    EMAIL_SUBJECT,
-                    EMAIL_BODY.format(current_host, retry_count, latest_status_message, latest_start_message),
+                    self.email_subject,
+                    self.EMAIL_BODY.format(current_host, retry_count, latest_status_message, latest_start_message),
                     files=None,
                     dryrun=False
                 )
-                self.logger.info('Alert Email Sent Sent')
+                self.logger.info('Alert Email has been sent')
             except Exception as e:
                 self.logger.critical('Failed to Send Email: ' + str(e) + 'error')
         else:

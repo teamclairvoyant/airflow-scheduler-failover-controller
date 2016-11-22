@@ -15,6 +15,7 @@ DEFAULT_LOGGING_LEVEL = "INFO"
 DEFAULT_LOGS_ROTATE_WHEN = "midnight"
 DEFAULT_LOGS_ROTATE_BACKUP_COUNT = 7
 DEFAULT_RETRY_COUNT_BEFORE_ALERTING = 5
+DEFAULT_ALERT_EMAIL_SUBJECT = "Airflow Alert - Scheduler Failover Controller Failed to Startup Scheduler"
 
 DEFAULT_SCHEDULER_FAILOVER_CONTROLLER_CONFIGS = """
 [scheduler_failover]
@@ -61,6 +62,9 @@ retry_count_before_alerting = """ + str(DEFAULT_RETRY_COUNT_BEFORE_ALERTING) + "
 
 # Email address to send alerts to if the failover controller is unable to startup a scheduler
 alert_to_email = airflow@airflow.com
+
+# Email Subject to use when sending an alert
+alert_email_subject = """ + str(DEFAULT_ALERT_EMAIL_SUBJECT) + """
 
 """
 
@@ -170,6 +174,9 @@ class Configuration:
 
     def get_alert_to_email(self):
         return self.get_scheduler_failover_config("ALERT_TO_EMAIL")
+
+    def get_alert_email_subject(self):
+        return self.get_scheduler_failover_config("ALERT_EMAIL_SUBJECT", DEFAULT_ALERT_EMAIL_SUBJECT)
 
     def add_default_scheduler_failover_configs_to_airflow_configs(self):
         with open(self.airflow_config_file_path, 'r') as airflow_config_file:

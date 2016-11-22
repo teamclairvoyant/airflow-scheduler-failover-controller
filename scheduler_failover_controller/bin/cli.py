@@ -23,7 +23,7 @@ def get_all_scheduler_failover_controller_objects():
     scheduler_nodes_in_cluster = configuration.get_scheduler_nodes_in_cluster()
     poll_frequency = configuration.get_poll_frequency()
     metadata_service = build_metadata_service(configuration, logger)
-    emailer = Emailer(configuration.get_alert_to_email(), logger)
+    emailer = Emailer(configuration.get_alert_to_email(), logger, configuration.get_alert_email_subject())
     failover_controller = FailoverController(
         configuration=configuration,
         command_runner=command_runner,
