@@ -8,10 +8,10 @@ class Emailer:
     EMAIL_BODY = """
     The Scheduler Failover Controller failed to Restart the Scheduler on all Scheduler Hosts.<br/>
     <br/>
-    Host Name: {0}<br/>
-    Retry Count: {1}<br/>
-    Latest Message from trying to get Status: {2}<br/>
-    Latest Message from trying to Restart: {3}<br/>
+    <b>Host Name:</b> {0}<br/>
+    <b>Retry Count:</b> {1}<br/>
+    <b>Latest Message from trying to get Status:</b> {2}<br/>
+    <b>Latest Message from trying to Restart:</b> {3}<br/>
     """
 
     def __init__(self, alert_to_email, logger, email_subject=None):

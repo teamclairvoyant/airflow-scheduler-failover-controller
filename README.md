@@ -124,15 +124,19 @@ Note: **Run as Root**
 
 #### Startup
 
-    systemctl start scheduler_failover_controller
+    sudo systemctl start scheduler_failover_controller
     
 #### Status
 
-    systemctl status scheduler_failover_controller
+    sudo systemctl status scheduler_failover_controller
 
 #### Shutdown
 
-    systemctl stop scheduler_failover_controller
+    sudo systemctl stop scheduler_failover_controller
+    
+#### Restart
+
+    sudo systemctl restart scheduler_failover_controller
 
 ## Getting Started
 
