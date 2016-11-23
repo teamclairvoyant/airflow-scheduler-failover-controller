@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import argparse
 from scheduler_failover_controller.app import build_metadata_service
-from scheduler_failover_controller.command_runnner.command_runner import CommandRunner
+from scheduler_failover_controller.command_runner.command_runner import CommandRunner
 from scheduler_failover_controller.configuration import Configuration
 from scheduler_failover_controller.emailer.emailer import Emailer
 from scheduler_failover_controller.failover.failover_controller import FailoverController
