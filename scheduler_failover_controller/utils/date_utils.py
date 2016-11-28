@@ -3,7 +3,7 @@ import datetime
 TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
-def get_datetime_as_str(date=datetime.datetime.now()):
+def get_datetime_as_str(date):
     return date.strftime(TIMESTAMP_FORMAT)
 
 

@@ -12,7 +12,7 @@
 
     a. Change user and group options as needed to ensure that it is the same as the user and group the main airflow processes are running as
     
-5. Enable the service
+5. Enable the service to be ran on startup of the machine
 
         systemctl enable scheduler_failover_controller
 

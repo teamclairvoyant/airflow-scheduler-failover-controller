@@ -33,9 +33,10 @@ class FailoverController:
         active_failover_node = self.metadata_service.get_active_failover_node()
         active_scheduler_node = self.metadata_service.get_active_scheduler_node()
         last_failover_heartbeat = self.metadata_service.get_failover_heartbeat()
+        current_time = datetime.datetime.now()
         self.logger.info("Active Failover Node: " + str(active_failover_node))
         self.logger.info("Active Scheduler Node: " + str(active_scheduler_node))
-        self.logger.info("Last Failover Heartbeat: " + str(last_failover_heartbeat) + ". Current time: " + get_datetime_as_str() + ".")
+        self.logger.info("Last Failover Heartbeat: " + str(last_failover_heartbeat) + ". Current time: " + str(current_time) + ".")
 
         # if the current controller instance is not active, then execute this statement
         if not self.IS_FAILOVER_CONTROLLER_ACTIVE:
@@ -52,8 +53,10 @@ class FailoverController:
                     self.set_this_failover_controller_as_active()
                     active_failover_node = self.metadata_service.get_active_failover_node()
                 else:
-                    failover_heartbeat_diff = (datetime.datetime.now() - last_failover_heartbeat).seconds
+                    failover_heartbeat_diff = (current_time - last_failover_heartbeat).seconds
+                    self.logger.debug("Failover Heartbeat Difference: " + str(failover_heartbeat_diff) + " seconds")
                     max_age = self.poll_frequency * 2
+                    self.logger.debug("Failover Heartbeat Max Age: " + str(max_age) + " seconds")
                     if failover_heartbeat_diff > max_age:
                         self.logger.warning("Failover Heartbeat '" + get_datetime_as_str(last_failover_heartbeat) + "' for Active Failover controller '" + str(active_failover_node) + "' is older then max age of " + str(max_age) + " seconds")
                         self.set_this_failover_controller_as_active()
