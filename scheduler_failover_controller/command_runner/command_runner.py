@@ -19,7 +19,7 @@ class CommandRunner:
         else:
             return self._run_ssh_command(host, base_command)
 
-    # This will start the process up as a child process. Meaning if the scheduler_failover_controller fails the child process will fail as well.
+    # This will start the process up as a child process. Meaning if the scheduler_failover_controller fails the child process will fail as well. (unless you're running the systemctl command)
     def _run_local_command(self, base_command):
         self.logger.debug("Running command as Local command")
         output = os.popen(base_command).read()
