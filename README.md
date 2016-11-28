@@ -1,11 +1,11 @@
 # Airflow Scheduler Failover Controller
 
-### Project Purpose
+## Project Purpose
 
 The purpose of this project is to create a failover controller that will control which scheduler is up and running to allow HA across an Airflow cluster. 
 
 
-### Motivation 
+## Motivation 
 
 We had attempted to setup a Highly Available Airflow Cluster where we had 2 machines with all the normal Airflow Daemons (web server, scheduler, workers, etc.) running on them. Each of the instances would share a MySQL instances as its MetaStore and share a RabbitMQ Queue for its Queueing Services (since we were using CeleryExecutors).
  
@@ -14,7 +14,7 @@ What we noticed after a month running the Cluster is that the schedulers would o
 This is what motivated us to search for an alternative to our initial approach to build a highly available Airflow Cluster. It lead to us creating this module.
 
 
-### How it Works
+## How it Works
 
 The Airflow Scheduler Failover Controller (ASFC) is a mechanism that ensures that only one Scheduler instance is running in an Airflow Cluster at a time. This way you don't come across the issues we described in the "Motivation" section above.
 
@@ -23,59 +23,191 @@ You will first need to startup the ASFC on each of the instances you want the sc
 The Active ASFC will poll every 10 seconds to see if the scheduler is running on the desired node. If it is not, the ASFC will try to restart the daemon. If the scheduler daemons still doesn't startup, the daemon is started on another node in the cluster.
 
 
-### Deployment Instructions
+## Installation
 
-1. Create a the directory `{AIRFLOW_HOME}/scheduler-failover`
+### Local Development
 
-2. Copy the files in the `{PROJECT_ROOT}/scheduler-failover` directory in this project to the `{AIRFLOW_HOME}/scheduler-failover` directory
+In case you want to do development work on the project
 
-3. (Optional) Edit the AIRFLOW_SCHEDULER_START_COMMAND and AIRFLOW_SCHEDULER_STOP_COMMAND arguments in the airflow-scheduler-failover.py file if you use a specific method of starting up and shutting down the schedulers (like systemd)
+1. Clone the project from GitHub to your local machine
 
+        git clone https://github.com/teamclairvoyant/airflow-scheduler-failover-controller
+
+2. Run pip install
+
+        cd {AIRFLOW_FAILOVER_CONTROLLER_HOME}
+        pip install -e .
+        
+3. You're done!
+
+    * After, you will be able to run the project through the CLI Interface (See bellow for more details), be able to make any changes to the project you just brought down and have those changes be immediately reflected in the CLI
+
+### Production
+
+1. Select which version of the code you want to install and use this value as the {BRANCH_OR_TAG} placeholder. Current Options:
+
+    * modularize-dev    - development version of the code
+
+2. Run pip install
+
+        pip install git+git://github.com/teamclairvoyant/airflow-scheduler-failover-controller.git@{BRANCH_OR_TAG}
+
+## CLI Interface
+
+    usage: scheduler_failover_controller [-h]
+                                         {version,init,test_connection,is_scheduler_running,clear_metadata,metadata,send_test_email,get_current_host,start}
+                                         ...
+    
+    positional arguments:
+      {version,init,test_connection,is_scheduler_running,clear_metadata,metadata,send_test_email,get_current_host,start}
+                            sub-command help
+        version             Prints out the version of the Scheduler Failover
+                            Controller
+        init                Initialize Configurations to allow Scheduler Failover
+                            Controller to run
+        test_connection     Tests if you can connect to all the necessary machines
+                            listed in 'scheduler_nodes_in_cluster' config
+        is_scheduler_running
+                            Checks if the Scheduler is running on the machines you
+                            have listed in 'scheduler_nodes_in_cluster' config
+        clear_metadata      Clear the Metadata in Metastore
+        metadata            Get the Metadata from Metastore
+        send_test_email     Send a Test Email
+        get_current_host    Get the Current Hostname
+        start               Start the Airflow Scheduler Failover Controller
+    
+    optional arguments:
+      -h, --help            show this help message and exit
+
+
+## Uninstall 
+
+1. Run pip uninstall
+
+        pip uninstall scheduler_failover_controller
+
+2. If you ran the installation for development, follow these steps:
+
+    a. Get the bin file location and use this value as the {BIN_CLI_FILE_PATH} placeholder
+
+        which scheduler_failover_controller
+
+    b. Remove the bin file
+
+        rm {BIN_CLI_FILE_PATH}
+
+## Startup/Status/Shutdown Instructions
+
+### Quickstart
+
+#### Startup
+
+##### Startup in the foreground
+
+    scheduler_failover_controller start
+
+##### Startup as a background process
+
+    nohup scheduler_failover_controller start > /dev/null &
+
+#### Status
+
+    ps -eaf | grep scheduler_failover_controller
+
+#### Shutdown
+ 
+    for pid in `ps -ef | grep "scheduler_failover_controller" | awk '{print $2}'` ; do kill -9 $pid ; done
+
+### Systemd
+
+The Airflow Scheduler Failover Controller also allows you to control the process with systemd. The systemd files can be found under ${PROJECT_HOME}/scripts/systemd. Within this directory is a README.md file which describes how to deploy the systemd files. Bellow illustrates how to run the process after deploying the files.
+
+Note: **Run as Root**
+
+#### Startup
+
+    sudo systemctl start scheduler_failover_controller
+    
+#### Status
+
+    sudo systemctl status scheduler_failover_controller
+
+#### Shutdown
+
+    sudo systemctl stop scheduler_failover_controller
+    
+#### Restart
+
+    sudo systemctl restart scheduler_failover_controller
+
+## Getting Started
+
+This is a step by step set of instructions you can take to get up and running with the scheduler_failover_controller
+
+1. Install the ASFC on all the desired machines
+
+    * See the above section entitled "Installation"
+    
+2. Run the following CLI command to get the default configurations setup in airflow.cfg
+ 
+        scheduler_failover_controller init
+        
+3. Update the default configurations that were added to the airflow.cfg file
+
+    a. Main ones include updating: scheduler_nodes_in_cluster, alert_to_email
+    
 4. Enable all the machines to be able to ssh to each of the other machines with the user you're running airflow as
-
+    
     a. Create a public and private key SSH key on all of the machines you want to act as schedulers. You can follow these instructions: https://www.digitalocean.com/community/tutorials/how-to-set-up-ssh-keys--2
-    
+        
     b. Add the public key content to the ~/.ssh/authorized_keys file on all the other machines
-     
-5. Add the following entry to the airflow.cfg file on all the instances where the ASFC is going to run and set the correct value:
 
+5. Run the following CLI command to test the connection to all the machines that will act as Schedulers
 
-    [scheduler_failover]
+        scheduler_failover_controller test_connection
+
+6. Startup the following Airflow Daemons
+
+    a. webserver
     
-    # List of potential nodes that can act as Schedulers (Comma Separated List)
-    scheduler_nodes_in_cluster = {HOST_1},{HOST_2}
+        nohup airflow webserver $* >> ~/airflow/logs/webserver.logs &
     
+    b. workers (If you're using the CeleryExecutor)
 
-6. Test your connection with the airflow-scheduler-failover.py script
+        nohup airflow worker $* >> ~/airflow/logs/celery.logs &
 
-    a. Execute the following command:
+7. Startup the Airflow Scheduler Failover Controller on each node you would like acting as the Scheduler Failover Controller (ONE AT A TIME).
 
-        python ~/airflow/scheduler-failover/airflow-scheduler-failover.py test_connection
-
-7. Start up all the airflow daemons except for the scheduler (the ASFC will handle starting it up) and the ASFC
-
-    a. You can use following commands:
-
-
-       nohup airflow webserver $* >> ~/airflow/logs/webserver.logs &
-       
-       # if you're using the celery executor start them up.
-       nohup airflow worker $* >> ~/airflow/logs/celery.logs &
-       
-       sh ~/airflow/scheduler-failover/startup-scheduler-failover.sh
-
-8. Verify the daemons is up by checking the status with the following command
-
-
-    ps -eaf | grep "airflow-scheduler-failover"
-
-9. Check the logs to determine if the process is running
-
-    a. log location: ~/airflow/logs/scheduler-failover.logs
+    * See the above section entitled "Startup/Status/Shutdown Instructions"
     
-10. Check the Metadata:
+8. View the logs to ensure things are running correctly
+
+    * Location of the logs can be determined by the 'logging_dir' configuration entry in the airflow.cfg 
+    
+    * Note: Logs are set by default to rotate at midnight and only keep 7 days worth of backups. This can be overridden in the configuration files.
+    
+9. View the metadata to ensure things are being set correctly
+
+        scheduler_failover_controller metadata
 
 
-    python ~/airflow/scheduler-failover/airflow-scheduler-failover.py metadata
+## Recommended Steps for a Better Deployment
+
+Above describes a quickstart approach. However, if you're looking for a better long term approach for using the Airflow Scheduler Failover Controller then you can follow the bellow steps.
+
+### Setup Systemd for Airflow
+
+Airflow provides scripts to help you control the airflow daemons through the **systemctl** command. It is recommended that you setup the airflow-scheduler, at least, for systemd. 
   
-11. Given the metadata, verify that the scheduler is being ran on the host mentioned in the variable 'active_scheduler_node'
+Go to https://github.com/apache/incubator-airflow/tree/master/scripts/systemd and follow the instructions in the README file to get it setup.
+
+### Update airflow.cfg configs to use the Systemd
+
+    airflow_scheduler_start_command = sudo systemctl restart airflow-scheduler
+    
+    airflow_scheduler_stop_command = sudo systemctl stop airflow-scheduler
+    
+### Setup the Airflow Scheduler Failover Controller to use Systemd
+
+Follow the instructions in ${PROJECT_HOME}/scripts/systemd/README.md to set it up.
+
