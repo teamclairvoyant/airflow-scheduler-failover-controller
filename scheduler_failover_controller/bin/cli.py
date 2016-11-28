@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import argparse
 from scheduler_failover_controller.app import build_metadata_service
 from scheduler_failover_controller.command_runner.command_runner import CommandRunner
 from scheduler_failover_controller.configuration import Configuration
@@ -7,6 +6,8 @@ from scheduler_failover_controller.emailer.emailer import Emailer
 from scheduler_failover_controller.failover.failover_controller import FailoverController
 from scheduler_failover_controller.logger.logger import get_logger
 from scheduler_failover_controller.app import main
+import scheduler_failover_controller
+import argparse
 
 configuration = Configuration()
 logger = get_logger(
@@ -32,6 +33,10 @@ def get_all_scheduler_failover_controller_objects():
         logger=logger
     )
     return scheduler_nodes_in_cluster, poll_frequency, metadata_service, emailer, failover_controller
+
+
+def version(args):
+    print "Scheduler Failover Controller Version: " + str(scheduler_failover_controller.__version__)
 
 
 def init(args):
@@ -94,6 +99,10 @@ def get_parser():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(help='sub-command help', dest='subcommand')
     subparsers.required = True
+
+    ht = "Prints out the version of the Scheduler Failover Controller"
+    parser_logs = subparsers.add_parser('version', help=ht)
+    parser_logs.set_defaults(func=version)
 
     ht = "Initialize Configurations to allow Scheduler Failover Controller to run"
     parser_logs = subparsers.add_parser('init', help=ht)

@@ -54,14 +54,15 @@ In case you want to do development work on the project
 
 ## CLI Interface
 
-usage: **scheduler_failover_controller** [-h]
-                                     {init,test_connection,is_scheduler_running,clear_metadata,metadata,send_test_email,get_current_host,start}
-                                     ...
-
+    usage: scheduler_failover_controller [-h]
+                                         {version,init,test_connection,is_scheduler_running,clear_metadata,metadata,send_test_email,get_current_host,start}
+                                         ...
+    
     positional arguments:
-      {init,test_connection,is_scheduler_running,clear_metadata,metadata,send_test_email,get_current_host,start}
-      
+      {version,init,test_connection,is_scheduler_running,clear_metadata,metadata,send_test_email,get_current_host,start}
                             sub-command help
+        version             Prints out the version of the Scheduler Failover
+                            Controller
         init                Initialize Configurations to allow Scheduler Failover
                             Controller to run
         test_connection     Tests if you can connect to all the necessary machines
@@ -77,6 +78,7 @@ usage: **scheduler_failover_controller** [-h]
     
     optional arguments:
       -h, --help            show this help message and exit
+
 
 ## Uninstall 
 
