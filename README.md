@@ -47,7 +47,9 @@ In case you want to do development work on the project
 1. Select which version of the code you want to install and use this value as the {BRANCH_OR_TAG} placeholder. Current Options:
 
     * master            - latest code in master
-    * v1.0.0             - version 1.0.0 of the code
+    * development       - code in development branch - experimental fixes and features
+    * v1.0.0            - version 1.0.0 of the code
+    * v1.0.1            - version 1.0.1 of the code
 
 2. Run pip install
 

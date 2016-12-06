@@ -14,8 +14,8 @@
 
 [Unit]
 Description=Airflow Scheduler Failover Controller
-After=network.target postgresql.service mysql.service redis.service rabbitmq-server.service
-Wants=postgresql.service mysql.service redis.service rabbitmq-server.service
+After=postgresql.service mysql.service redis.service
+Wants=postgresql.service mysql.service redis.service
 
 [Service]
 User=airflow
