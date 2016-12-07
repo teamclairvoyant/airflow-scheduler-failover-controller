@@ -2,6 +2,12 @@
 
 ## Steps to Deploy
 
+### Automatic
+
+Follow the instructions under the {PROJECT_HOME}/scripts/systemd/deploy/ directory
+
+### Manually
+
 1. Login to each of the machines acting as Scheduler Failover Controllers
 
 2. Login as root

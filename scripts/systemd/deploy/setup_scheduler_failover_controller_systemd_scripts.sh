@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SCHEDULER_FAILOVER_CONTROLLER_VERSION="v1.0.0"
+SCHEDULER_FAILOVER_CONTROLLER_VERSION="v1.0.1"
 REPO_ARCHIVE_URL="https://github.com/teamclairvoyant/airflow-scheduler-failover-controller/archive/"
 
 echo "Deploying the systemd services for Airflow Scheduler Failover Controller ${SCHEDULER_FAILOVER_CONTROLLER_VERSION}"
