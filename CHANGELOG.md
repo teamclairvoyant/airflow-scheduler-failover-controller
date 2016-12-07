@@ -10,6 +10,6 @@ Includes
 
 * updated Systemd services options
 * Created scripts to deploy Systemd Services
-
+* Fixing issue with running sudo command via ssh
 
 

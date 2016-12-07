@@ -40,7 +40,5 @@ for line in `ls -1 *.service`; do
 done
 echo ""
 
-echo "Please update the contents of the /usr/lib/systemd/system/airflow-*.service files with the desired user you wish to run it as:"
-echo "$ sudo nano /usr/lib/systemd/system/airflow-*.service"
-
-
+echo "Please update the contents of the /usr/lib/systemd/system/scheduler_failover_controller.service files with the desired user you wish to run it as:"
+echo "$ sudo nano /usr/lib/systemd/system/scheduler_failover_controller.service"
