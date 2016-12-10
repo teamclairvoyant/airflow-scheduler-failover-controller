@@ -2,9 +2,9 @@
 
 ## Steps to Deploy
 
-### Automatic
+### Scripted
 
-Follow the instructions under the {PROJECT_HOME}/scripts/systemd/deploy/ directory
+We have built scripts to help facilitate the deployment of the systemd scripts. Follow the instructions under the {PROJECT_HOME}/scripts/systemd/deploy/ directory.
 
 ### Manually
 
@@ -12,7 +12,10 @@ Follow the instructions under the {PROJECT_HOME}/scripts/systemd/deploy/ directo
 
 2. Login as root
 
-3. Copy the **scheduler_failover_controller.service** to the **/usr/lib/systemd/system** directory
+3. Copy the **scheduler_failover_controller.service** file to the systemd directory. See the bellow list for the correct location based off your environment.
+
+    * **/usr/lib/systemd/system/** for CentOS
+    * **/lib/systemd/system/** for Ubuntu
  
 4. Edit the **scheduler_failover_controller.service** and change any configurations you would like
 

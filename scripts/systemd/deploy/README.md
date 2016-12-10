@@ -13,13 +13,15 @@ This directory contains scripts to help you deploy the systemd service scripts q
         
         wget https://raw.githubusercontent.com/teamclairvoyant/airflow-scheduler-failover-controller/master/scripts/systemd/deploy/setup_scheduler_failover_controller_systemd_scripts.sh
 
-2. Update the scripts with the version of Airflow and the Airflow Scheduler Failover Controller you're using
+2. Update the scripts with the version of Airflow and the Airflow Scheduler Failover Controller you're using as well as the user and group you would like the job to be running as.
 
-3. Run the scripts as Root
+3. Run the scripts as Root with BASH
 
-4. Upon completion of installing the scripts, update the **/usr/lib/systemd/system/airflow-*.service** and **/usr/lib/systemd/system/scheduler_failover_controller.service** files with the user and group you want the processes to run as.
- 
-    * Note: You need to be Root to make this type of change
+        bash setup_airflow_systemd_scripts.sh
+        
+        bash setup_scheduler_failover_controller_systemd_scripts.sh
+
+4. You're done!
 
 
 ## Helpful Tips

@@ -2,6 +2,8 @@
 
 SCHEDULER_FAILOVER_CONTROLLER_VERSION="v1.0.1"
 REPO_ARCHIVE_URL="https://github.com/teamclairvoyant/airflow-scheduler-failover-controller/archive/"
+USERNAME="airflow"
+GROUP="airflow"
 
 echo "Deploying the systemd services for Airflow Scheduler Failover Controller ${SCHEDULER_FAILOVER_CONTROLLER_VERSION}"
 
@@ -22,8 +24,36 @@ unzip ${SCHEDULER_FAILOVER_CONTROLLER_VERSION}.zip
 
 cd airflow-scheduler-failover-controller-${SCHEDULER_FAILOVER_CONTROLLER_VERSION//v/}/scripts/systemd/
 
-echo "Deploying systemd service files to /usr/lib/systemd/system/"
-cp *.service /usr/lib/systemd/system/
+echo "Updating systemd service scripts content"
+for service_file in `ls -1 *.service`; do
+    echo "Updating systemd service file ${service_file}"
+    sed -i -e "s/User=airflow/User=${USERNAME}/g" ${service_file}
+    sed -i -e "s/Group=airflow/Group=${GROUP}/g" ${service_file}
+done
+
+SYSTEMD_SERVICES_DIR=""
+POSSIBLE_SYSTEMD_SERVICES_DIR_LOCATIONS=( "/usr/lib/systemd/system/" "/lib/systemd/system/" )
+for POSSIBLE_SYSTEMD_SERVICES_DIR in "${POSSIBLE_SYSTEMD_SERVICES_DIR_LOCATIONS[@]}"; do
+    if [[ -a ${POSSIBLE_SYSTEMD_SERVICES_DIR} ]]; then
+        SYSTEMD_SERVICES_DIR="${POSSIBLE_SYSTEMD_SERVICES_DIR}"
+        break
+    fi
+done
+if [[ "${SYSTEMD_SERVICES_DIR}" == "" ]]; then
+    echo "Unable to find a place to put the Systemd Service Files"
+    exit 1
+fi
+
+echo "Deploying systemd service files to ${SYSTEMD_SERVICES_DIR}"
+cp *.service ${SYSTEMD_SERVICES_DIR}
+
+if [ "${SCHEDULER_FAILOVER_CONTROLLER_VERSION_BIN}" != "/bin/scheduler_failover_controller" ] &&  ! [ -a "/bin/scheduler_failover_controller" ]; then
+    if [[ "${SCHEDULER_FAILOVER_CONTROLLER_VERSION_BIN}" == "" ]]; then
+        echo "The Scheduler Failover Controller has not been installed. Skipping creation of Symlink."
+    else
+        ln -s ${SCHEDULER_FAILOVER_CONTROLLER_VERSION_BIN} /bin/scheduler_failover_controller
+    fi
+fi
 
 echo "Deploy is complete!"
 echo ""
@@ -39,6 +69,3 @@ for line in `ls -1 *.service`; do
     echo "$ systemctl start ${line//.service/}"
 done
 echo ""
-
-echo "Please update the contents of the /usr/lib/systemd/system/scheduler_failover_controller.service files with the desired user you wish to run it as:"
-echo "$ sudo nano /usr/lib/systemd/system/scheduler_failover_controller.service"
