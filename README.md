@@ -47,13 +47,17 @@ In case you want to do development work on the project
 1. Select which version of the code you want to install and use this value as the {BRANCH_OR_TAG} placeholder. Current Options:
 
     * master
-        * latest code in master - BRANCH
+        * latest code in master
+        * BRANCH
     * development
-        * code in development branch - experimental fixes and features - BRANCH
+        * code in development branch - experimental fixes and features
+        * BRANCH
     * v1.0.0
-        * version 1.0.0 of the code - RELEASE
+        * version 1.0.0 of the code
+        * RELEASE
     * v1.0.1
-        * version 1.0.1 of the code - RELEASE
+        * version 1.0.1 of the code
+        * RELEASE
 
 2. Run pip install
 
@@ -159,9 +163,15 @@ This is a step by step set of instructions you can take to get up and running wi
  
         scheduler_failover_controller init
         
-3. Update the default configurations that were added to the airflow.cfg file
+3. Update the default configurations that were added to the bottom of the airflow.cfg file under the [scheduler_failover] section
 
-    a. Main ones include updating: scheduler_nodes_in_cluster, alert_to_email
+    a. Main ones include updating: **scheduler_nodes_in_cluster**, **alert_to_email**
+    
+       * For scheduler_nodes_in_cluster property, it is recommended that you use the value printed from the following command:
+       
+        scheduler_failover_controller get_current_host
+        
+       * So, if this command printed out 'ip-10-0-0-98', include this as the value for that particular host. 
     
 4. Enable all the machines to be able to ssh to each of the other machines with the user you're running airflow as
     
@@ -191,7 +201,7 @@ This is a step by step set of instructions you can take to get up and running wi
 
     * Location of the logs can be determined by the 'logging_dir' configuration entry in the airflow.cfg 
     
-    * Note: Logs are set by default to rotate at midnight and only keep 7 days worth of backups. This can be overridden in the configuration files.
+    * Note: Logs are set by default to rotate at midnight and only keep 7 days worth of backups. This can be overridden in the configuration file.
     
 9. View the metadata to ensure things are being set correctly
 
