@@ -58,6 +58,9 @@ In case you want to do development work on the project
     * v1.0.1
         * version 1.0.1 of the code
         * RELEASE
+    * v1.0.2
+        * version 1.0.2 of the code
+        * RELEASE
 
 2. Run pip install
 

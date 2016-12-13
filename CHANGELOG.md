@@ -13,4 +13,6 @@ Includes base functionality to control and check if the Scheduler is running. Su
 * Fixing issue with running sudo command via ssh
 * Updated documentation (setup instructions and others)
 
+### [v1.0.2](https://github.com/teamclairvoyant/airflow-scheduler-failover-controller/tree/v1.0.2)
 
+*
