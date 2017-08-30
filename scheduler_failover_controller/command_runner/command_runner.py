@@ -39,7 +39,7 @@ class CommandRunner:
         )
 
     def _run_split_command(self, command_split):
-        self.logger.debug("Running command_split: " + str(command_split))
+        self.logger.debug("Running command_split:%s ", str(command_split))
         is_successful = True
         output = []
         try:
@@ -49,11 +49,13 @@ class CommandRunner:
                 stderr_output = process.stderr.readlines()
                 if stderr_output and len(stderr_output) > 0:
                     output += stderr_output
-                    self.logger.debug("Run Command stderr output: " + str(stderr_output))
+                    self.logger.debug("Run Command stderr output:%s ", str(stderr_output))
             if process.stdout is not None:
                 output += process.stdout.readlines()
         except Exception, e:
             is_successful = False
             output = str(e)
-        self.logger.debug("Run Command output: " + str(output))
+        if process.returncode != 0:
+            is_successful = False
+        self.logger.debug("Run Command return code:%s output:%s " , process.returncode, str(output))
         return is_successful, output
