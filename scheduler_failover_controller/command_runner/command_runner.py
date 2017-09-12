@@ -55,5 +55,7 @@ class CommandRunner:
         except Exception, e:
             is_successful = False
             output = str(e)
+        if process.returncode != 0:
+            is_successful = False
         self.logger.debug("Run Command output: " + str(output))
         return is_successful, output
