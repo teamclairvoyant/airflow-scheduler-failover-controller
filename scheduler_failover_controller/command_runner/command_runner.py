@@ -53,7 +53,7 @@ class CommandRunner:
             if process.stdout is not None:
                 output += process.stdout.readlines()
             if process.returncode != 0:
-                self.logger.warning("")
+                self.logger.warn("Process returned code '" + str(process.returncode) + "'")
                 is_successful = False
         except Exception, e:
             is_successful = False
