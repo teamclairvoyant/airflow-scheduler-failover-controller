@@ -1,12 +1,14 @@
+import configparser
+import logging
 import os
-import ConfigParser
 import socket
 import sys
-import logging
 
 
 def get_airflow_home_dir():
-    return os.environ['AIRFLOW_HOME'] if "AIRFLOW_HOME" in os.environ else os.path.expanduser("~/airflow")
+    return os.environ['AIRFLOW_HOME'] if "AIRFLOW_HOME" in os.environ else os.path.expanduser(
+        "~/airflow")
+
 
 DEFAULT_AIRFLOW_HOME_DIR = get_airflow_home_dir()
 DEFAULT_METADATA_SERVICE_TYPE = "SQLMetadataService"
@@ -70,7 +72,6 @@ alert_email_subject = """ + str(DEFAULT_ALERT_EMAIL_SUBJECT) + """
 
 
 class Configuration:
-
     def __init__(self, airflow_home_dir=None, airflow_config_file_path=None):
         if airflow_home_dir is None:
             airflow_home_dir = DEFAULT_AIRFLOW_HOME_DIR
@@ -80,10 +81,11 @@ class Configuration:
         self.airflow_config_file_path = airflow_config_file_path
 
         if not os.path.isfile(airflow_config_file_path):
-            print "Cannot find Airflow Configuration file at '" + str(airflow_config_file_path) + "'!!!"
+            print("Cannot find Airflow Configuration file at {}!!!".format(
+                airflow_config_file_path))
             sys.exit(1)
 
-        self.conf = ConfigParser.RawConfigParser()
+        self.conf = configparser.RawConfigParser()
         self.conf.read(airflow_config_file_path)
 
     @staticmethod
@@ -111,7 +113,8 @@ class Configuration:
         return self.get_config("smtp", option, default)
 
     def get_logging_level(self):
-        return logging.getLevelName(self.get_scheduler_failover_config("LOGGING_LEVEL", DEFAULT_LOGGING_LEVEL))
+        return logging.getLevelName(
+            self.get_scheduler_failover_config("LOGGING_LEVEL", DEFAULT_LOGGING_LEVEL))
 
     def get_logs_output_file_path(self):
         logging_dir = self.get_scheduler_failover_config("LOGGING_DIR")
@@ -122,13 +125,15 @@ class Configuration:
         return self.get_config("core", "SQL_ALCHEMY_CONN")
 
     def get_metadata_type(self):
-        return self.get_scheduler_failover_config("METADATA_SERVICE_TYPE", DEFAULT_METADATA_SERVICE_TYPE)
+        return self.get_scheduler_failover_config("METADATA_SERVICE_TYPE",
+                                                  DEFAULT_METADATA_SERVICE_TYPE)
 
     def get_metadata_service_zookeeper_nodes(self):
         return self.get_scheduler_failover_config("METADATA_SERVICE_ZOOKEEPER_NODES")
 
     def get_scheduler_nodes_in_cluster(self):
-        scheduler_nodes_in_cluster = self.get_scheduler_failover_config("SCHEDULER_NODES_IN_CLUSTER")
+        scheduler_nodes_in_cluster = self.get_scheduler_failover_config(
+            "SCHEDULER_NODES_IN_CLUSTER")
         if scheduler_nodes_in_cluster is not None:
             scheduler_nodes_in_cluster = scheduler_nodes_in_cluster.split(",")
         return scheduler_nodes_in_cluster
@@ -140,7 +145,8 @@ class Configuration:
         return self.get_scheduler_failover_config("AIRFLOW_SCHEDULER_START_COMMAND")
 
     def get_airflow_scheduler_stop_command(self):
-        return self.get_scheduler_failover_config("AIRFLOW_SCHEDULER_STOP_COMMAND").replace("\\;", ";")
+        return self.get_scheduler_failover_config("AIRFLOW_SCHEDULER_STOP_COMMAND").replace("\\;",
+                                                                                            ";")
 
     def get_airflow_smtp_host(self):
         return self.get_smtp_config("SMTP_HOST")
@@ -164,26 +170,31 @@ class Configuration:
         return self.get_smtp_config("SMTP_MAIL_FROM")
 
     def get_retry_count_before_alerting(self):
-        return int(self.get_scheduler_failover_config("RETRY_COUNT_BEFORE_ALERTING", DEFAULT_RETRY_COUNT_BEFORE_ALERTING))
+        return int(self.get_scheduler_failover_config("RETRY_COUNT_BEFORE_ALERTING",
+                                                      DEFAULT_RETRY_COUNT_BEFORE_ALERTING))
 
     def get_logs_rotate_when(self):
         return self.get_scheduler_failover_config("LOGS_ROTATE_WHEN", DEFAULT_LOGS_ROTATE_WHEN)
 
     def get_logs_rotate_backup_count(self):
-        return int(self.get_scheduler_failover_config("LOGS_ROTATE_BACKUP_COUNT", DEFAULT_LOGS_ROTATE_BACKUP_COUNT))
+        return int(self.get_scheduler_failover_config("LOGS_ROTATE_BACKUP_COUNT",
+                                                      DEFAULT_LOGS_ROTATE_BACKUP_COUNT))
 
     def get_alert_to_email(self):
         return self.get_scheduler_failover_config("ALERT_TO_EMAIL")
 
     def get_alert_email_subject(self):
-        return self.get_scheduler_failover_config("ALERT_EMAIL_SUBJECT", DEFAULT_ALERT_EMAIL_SUBJECT)
+        return self.get_scheduler_failover_config("ALERT_EMAIL_SUBJECT",
+                                                  DEFAULT_ALERT_EMAIL_SUBJECT)
 
     def add_default_scheduler_failover_configs_to_airflow_configs(self):
         with open(self.airflow_config_file_path, 'r') as airflow_config_file:
             if "[scheduler_failover]" not in airflow_config_file.read():
-                print "Adding Scheduler Failover configs to Airflow config file..."
+                print("Adding Scheduler Failover configs to Airflow config file...")
                 with open(self.airflow_config_file_path, "a") as airflow_config_file_to_append:
-                    airflow_config_file_to_append.write(DEFAULT_SCHEDULER_FAILOVER_CONTROLLER_CONFIGS)
-                    print "Finished adding Scheduler Failover configs to Airflow config file."
+                    airflow_config_file_to_append.write(
+                        DEFAULT_SCHEDULER_FAILOVER_CONTROLLER_CONFIGS)
+                    print("Finished adding Scheduler Failover configs to Airflow config file.")
             else:
-                print "[scheduler_failover] section already exists. Skipping adding Scheduler Failover configs."
+                print(
+                    "[scheduler_failover] section already exists. Skipping adding Scheduler Failover configs.")

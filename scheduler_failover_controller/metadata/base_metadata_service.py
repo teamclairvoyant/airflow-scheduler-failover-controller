@@ -1,9 +1,9 @@
 import datetime
+
 from scheduler_failover_controller.utils import date_utils
 
 
 class BaseMetadataService:
-
     def initialize_metadata_source(self):
         raise NotImplementedError
 
@@ -29,12 +29,13 @@ class BaseMetadataService:
         raise NotImplementedError
 
     def print_metadata(self):
-        print "Printing Metadata: "
-        print "=============================="
-        print "active_failover_node: " + str(self.get_active_failover_node())
-        print "active_scheduler_node: " + str(self.get_active_scheduler_node())
-        print "last_failover_heartbeat: " + str(self.get_failover_heartbeat())
-        print ""
-        print "Printing Other Info: "
-        print "=============================="
-        print "current_timestamp: " + str(date_utils.get_datetime_as_str(datetime.datetime.now()))
+        print("Printing Metadata: ")
+        print("==============================")
+        print("active_failover_node: {}".format(self.get_active_failover_node()))
+        print("active_scheduler_node: {}".format(self.get_active_scheduler_node()))
+        print("last_failover_heartbeat: {}".format(self.get_failover_heartbeat()))
+        print("")
+        print("Printing Other Info: ")
+        print("==============================")
+        print(
+            "current_timestamp: {}".format(date_utils.get_datetime_as_str(datetime.datetime.now())))

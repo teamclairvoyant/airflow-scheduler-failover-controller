@@ -3,8 +3,8 @@ import logging.handlers
 import os
 
 
-def get_logger(logging_level, logs_output_file_path=None, logs_rotate_when="midnight", logs_rotate_backup_count=7):
-
+def get_logger(logging_level, logs_output_file_path=None, logs_rotate_when="midnight",
+               logs_rotate_backup_count=7):
     # Create the logger
     logger = logging.getLogger(__name__)
 
@@ -12,7 +12,8 @@ def get_logger(logging_level, logs_output_file_path=None, logs_rotate_when="midn
     logger.setLevel(logging_level)
 
     # Create logging format
-    formatter = logging.Formatter('[%(asctime)s] {%(filename)s:%(lineno)d} - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(
+        '[%(asctime)s] {%(filename)s:%(lineno)d} - %(levelname)s - %(message)s')
 
     # Create the stream handler to log messages to the console
     # stream_handler = logging.StreamHandler()
@@ -32,7 +33,8 @@ def get_logger(logging_level, logs_output_file_path=None, logs_rotate_when="midn
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
 
-    logger.debug("Created Logger with Args - logging_level: {logging_level}, logs_output_file_path: {logs_output_file_path}, logs_rotate_when: {logs_rotate_when}, logs_rotate_backup_count: {logs_rotate_backup_count}".format(**locals()))
+    logger.debug(
+        "Created Logger with Args - logging_level: {logging_level}, logs_output_file_path: {logs_output_file_path}, logs_rotate_when: {logs_rotate_when}, logs_rotate_backup_count: {logs_rotate_backup_count}".format(
+            **locals()))
 
     return logger
-
