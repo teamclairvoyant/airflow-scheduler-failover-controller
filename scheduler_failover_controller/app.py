@@ -1,6 +1,8 @@
-from scheduler_failover_controller.metadata.sql_metadata_service import SQLMetadataService
-from scheduler_failover_controller.metadata.zookeeper_metadata_service import ZookeeperMetadataService
 import time
+
+from scheduler_failover_controller.metadata.sql_metadata_service import SQLMetadataService
+from scheduler_failover_controller.metadata.zookeeper_metadata_service import \
+    ZookeeperMetadataService
 
 
 def build_metadata_service(configuration, logger):
@@ -22,20 +24,18 @@ def build_metadata_service(configuration, logger):
 
 
 def main(configuration, poll_frequency, metadata_service, failover_controller, logger):
-
     logger.info("Scheduler Failover Controller Starting Up!")
 
     current_host = configuration.get_current_host()
-    logger.info("Current Host: " + str(current_host))
+    logger.info("Current Host: {}".format(current_host))
 
     metadata_service.initialize_metadata_source()
 
     # Infinite while loop for polling with a sleep for X seconds.
     while 1:
         failover_controller.poll()
-        logger.info("Finished Polling. Sleeping for " + str(poll_frequency) + " seconds")
+        logger.info("Finished Polling. Sleeping for {} seconds".format(poll_frequency))
         time.sleep(poll_frequency)
 
     # should not get to this point
     logger.info("Scheduler Failover Controller Finished")
-
