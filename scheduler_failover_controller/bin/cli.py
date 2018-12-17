@@ -40,7 +40,11 @@ def version(args):
 
 
 def init(args):
-    configuration.add_default_scheduler_failover_configs_to_airflow_configs()
+    if(args.venv is not None):
+        venv_command = "source " + args.venv
+    else:
+        venv_command = ""
+    configuration.add_default_scheduler_failover_configs_to_airflow_configs(venv_command)
     print "Finished Initializing Configurations to allow Scheduler Failover Controller to run. Please update the airflow.cfg with your desired configurations."
 
 
@@ -99,7 +103,9 @@ def get_parser():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(help='sub-command help', dest='subcommand')
     subparsers.required = True
-
+    
+    parser.add_argument('-venv', help='Specify virtualenv activation path')
+    
     ht = "Prints out the version of the Scheduler Failover Controller"
     parser_logs = subparsers.add_parser('version', help=ht)
     parser_logs.set_defaults(func=version)
