@@ -162,6 +162,12 @@ This is a step by step set of instructions you can take to get up and running wi
 2. Run the following CLI command to get the default configurations setup in airflow.cfg
  
         scheduler_failover_controller init
+
+##### PS: Virtualenv support
+You can use the scheduler_failover_controller on a virtual environment too. To do so, you need to specify the activation path of your virtual environment:
+
+        scheduler_failover_controller -venv PATH_TO_VIRTUALENV/bin/activate init
+
         
 3. Update the default configurations that were added to the bottom of the airflow.cfg file under the [scheduler_failover] section
 
