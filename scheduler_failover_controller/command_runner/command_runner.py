@@ -29,11 +29,12 @@ class CommandRunner:
         return True, output
 
     def _run_ssh_command(self, host, base_command):
+	print(" The base_command is " + str(base_command))
         self.logger.debug("Running command as SSH command")
         if base_command.startswith("sudo"):
             command_split = ["ssh", "-tt", host, base_command]
         else:
-            command_split = ["ssh", host, base_command]
+            command_split = ["ssh" , "-i", "/home/sshuser/.ssh/hdinsight/ssh_key", host, base_command]
         return self._run_split_command(
             command_split=command_split
         )
@@ -45,6 +46,7 @@ class CommandRunner:
         try:
             process = subprocess.Popen(command_split, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             process.wait()
+	    print(subprocess.check_output(command_split))
             if process.stderr is not None:
                 stderr_output = process.stderr.readlines()
                 if stderr_output and len(stderr_output) > 0:
@@ -55,6 +57,7 @@ class CommandRunner:
         except Exception, e:
             is_successful = False
             output = str(e)
+	    print("Exceptions occured " + str(e))
         if process.returncode != 0:
             is_successful = False
         self.logger.debug("Run Command output: " + str(output))

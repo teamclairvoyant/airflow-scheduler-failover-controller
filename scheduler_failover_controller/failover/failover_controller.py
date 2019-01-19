@@ -142,18 +142,22 @@ class FailoverController:
     def is_scheduler_running(self, host):
         self.logger.info("Starting to Check if Scheduler on host '" + str(host) + "' is running...")
 
-        process_check_command = "ps -eaf"
+        process_check_command = "ps -ef"
         grep_command = "grep 'airflow scheduler'"
         grep_command_no_quotes = grep_command.replace("'", "")
-        full_status_check_command = process_check_command + " | " + grep_command  # ps -eaf | grep 'airflow scheduler'
+	make_sure_executable = "grep '/usr/bin/python'"
+        full_status_check_command = process_check_command + " | " + grep_command + " | " + make_sure_executable  # ps -eaf | grep 'airflow scheduler'
         is_running = False
         is_successful, output = self.command_runner.run_command(host, full_status_check_command)
         self.LATEST_FAILED_STATUS_MESSAGE = output
+	authorized_use_message = "Authorized uses only"
         if is_successful:
             active_list = []
             for line in output:
+		print(" The line being checked: " + line)
                 if line.strip() != "" and process_check_command not in line and grep_command not in line and grep_command_no_quotes not in line and full_status_check_command not in line:
-                    active_list.append(line)
+		    if authorized_use_message not in line:
+                        active_list.append(line)
 
             active_list_length = len(filter(None, active_list))
 
