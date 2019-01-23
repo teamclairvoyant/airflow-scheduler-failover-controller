@@ -16,9 +16,8 @@ DEFAULT_LOGS_ROTATE_WHEN = "midnight"
 DEFAULT_LOGS_ROTATE_BACKUP_COUNT = 7
 DEFAULT_RETRY_COUNT_BEFORE_ALERTING = 5
 DEFAULT_ALERT_EMAIL_SUBJECT = "Airflow Alert - Scheduler Failover Controller Failed to Startup Scheduler"
-DEFAULT_SCHEDULER_STOP_COMMAND = "source ~/airflow-scheduler-failover-controller/scheduler_failover_controller/kill_scheduler.sh"
-#TODO add the bottom command to config file !!!!!!!!
-TMP_DEFAULT_SCHEDULER_START_COMMAND = "source ~/.profile; nohup airflow scheduler >> ~/AristoAirflow/logs/scheduler/scheduler.logs & "
+DEFAULT_SCHEDULER_START_COMMAND = "nohup airflow scheduler >> ~/airflow/logs/scheduler.logs &"
+DEFAULT_SCHEDULER_STOP_COMMAND = "for pid in `ps -ef | grep \"airflow scheduler\" | awk '{print $2}'` \; do kill -9 $pid \; done"
 
 
 class Configuration:
@@ -71,7 +70,7 @@ class Configuration:
         return logging_dir + logging_file_name if logging_dir is not None and logging_file_name is not None else None
 
     def get_sql_alchemy_conn(self):
-        return os.environ["AIRFLOW__CORE__SQL_ALCHEMY_CONN"]
+        return self.get_config("core", "SQL_ALCHEMY_CONN")
 
     def get_metadata_type(self):
         return self.get_scheduler_failover_config("METADATA_SERVICE_TYPE", DEFAULT_METADATA_SERVICE_TYPE)
@@ -80,7 +79,7 @@ class Configuration:
         return self.get_scheduler_failover_config("METADATA_SERVICE_ZOOKEEPER_NODES")
 
     def get_scheduler_nodes_in_cluster(self):
-        scheduler_nodes_in_cluster = os.environ["AIRFLOW__SCHEDULER_SCHEDULER_NODES_IN_CLUSTER"]
+        scheduler_nodes_in_cluster = self.get_scheduler_failover_config("SCHEDULER_NODES_IN_CLUSTER")
         if scheduler_nodes_in_cluster is not None:
             scheduler_nodes_in_cluster = scheduler_nodes_in_cluster.split(",")
         return scheduler_nodes_in_cluster
@@ -89,12 +88,10 @@ class Configuration:
         return int(self.get_scheduler_failover_config("POLL_FREQUENCY", DEFAULT_POLL_FREQUENCY))
 
     def get_airflow_scheduler_start_command(self):
-        # return self.get_scheduler_failover_config("AIRFLOW_SCHEDULER_START_COMMAND")
-	# TODO Change this back !!!!
-	return TMP_DEFAULT_SCHEDULER_START_COMMAND
+	return self.get_scheduler_failover_config("SCHEDULER_START_COMMAND", DEFAULT_SCHEDULER_START_COMMAND)
 
     def get_airflow_scheduler_stop_command(self):
-        return self.get_scheduler_failover_config("AIRFLOW_SCHEDULER_STOP_COMMAND", DEFAULT_SCHEDULER_STOP_COMMAND)
+        return self.get_scheduler_failover_config("SCHEDULER_STOP_COMMAND", DEFAULT_SCHEDULER_STOP_COMMAND)
 
     def get_airflow_smtp_host(self):
         return self.get_smtp_config("SMTP_HOST")
