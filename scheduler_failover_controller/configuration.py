@@ -96,9 +96,7 @@ class Configuration:
         return scheduler_nodes_in_cluster
 
     def get_poll_frequency(self):
-        print("The values returned is " + self.get_scheduler_failover_config("POLL_FREQUENCY", DEFAULT_POLL_FREQUENCY))
-        # return int(self.get_scheduler_failover_config("POLL_FREQUENCY", DEFAULT_POLL_FREQUENCY))
-	return DEFAULT_POLL_FREQUENCY
+        return int(self.get_scheduler_failover_config("POLL_FREQUENCY", DEFAULT_POLL_FREQUENCY))
 
     def get_airflow_scheduler_start_command(self):
 	return self.get_scheduler_failover_config("SCHEDULER_START_COMMAND", DEFAULT_SCHEDULER_START_COMMAND)
