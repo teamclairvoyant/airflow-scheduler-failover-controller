@@ -48,12 +48,23 @@ class Configuration:
         return self.airflow_config_file_path
 
     def get_config(self, section, option, default=None):
+	config_value, env_var_value = None, None
+
         try:
             config_value = self.conf.get(section, option)
-            return config_value if config_value is not None else default
         except:
             pass
-        return default
+	try:
+	    env_var_value = os.environ["AIRFLOW__" + section.upper() + "__" + option.upper()]
+	except:
+	    pass
+
+	if config_value:
+	    return config_value
+	elif env_var_value:
+	    return env_var_value
+	else:
+	    return default
 
     def get_scheduler_failover_config(self, option, default=None):
         return self.get_config("scheduler_failover", option, default)
@@ -85,7 +96,9 @@ class Configuration:
         return scheduler_nodes_in_cluster
 
     def get_poll_frequency(self):
-        return int(self.get_scheduler_failover_config("POLL_FREQUENCY", DEFAULT_POLL_FREQUENCY))
+        print("The values returned is " + self.get_scheduler_failover_config("POLL_FREQUENCY", DEFAULT_POLL_FREQUENCY))
+        # return int(self.get_scheduler_failover_config("POLL_FREQUENCY", DEFAULT_POLL_FREQUENCY))
+	return DEFAULT_POLL_FREQUENCY
 
     def get_airflow_scheduler_start_command(self):
 	return self.get_scheduler_failover_config("SCHEDULER_START_COMMAND", DEFAULT_SCHEDULER_START_COMMAND)
