@@ -22,12 +22,6 @@ You will first need to startup the ASFC on each of the instances you want the sc
 
 The Active ASFC will poll every 10 seconds to see if the scheduler is running on the desired node. If it is not, the ASFC will try to restart the daemon. If the scheduler daemons still doesn't startup, the daemon is started on another node in the cluster.
 
-## Note
-
-This will install the latest version of Apache Airflow.
-If you want to work with Airfow v1.7.0 please use the branch 
-https://github.com/teamclairvoyant/airflow-scheduler-failover-controller/tree/airflow_v1.7
-
 ## Installation
 
 ### Local Development
@@ -54,9 +48,6 @@ In case you want to do development work on the project
     * master
         * latest code in master
         * BRANCH
-    * airflow_v1.7
-        * latest code in airflow_v1.7 - use this for Airflow v1.7.0
-        * BRANCH    
     * development
         * code in development branch - experimental fixes and features
         * BRANCH
