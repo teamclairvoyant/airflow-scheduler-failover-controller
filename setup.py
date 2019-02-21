@@ -11,7 +11,7 @@ setup(
     zip_safe=False,
     scripts=['scheduler_failover_controller/bin/scheduler_failover_controller'],
     install_requires=[
-        'apache-airflow>=1.7.0',
+        'apache-airflow>=1.8.1',
         'kazoo>=2.2.1',
         'coverage>=4.2',
         'eventlet>=0.9.7',

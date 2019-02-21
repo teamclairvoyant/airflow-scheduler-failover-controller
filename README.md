@@ -25,7 +25,7 @@ The Active ASFC will poll every 10 seconds to see if the scheduler is running on
 ## Note
 
 This will install the latest version of Apache Airflow.
-If you want to install Airfow versions prior to 1.7.0 please use the branch 
+If you want to work with Airfow v1.7.0 please use the branch 
 https://github.com/teamclairvoyant/airflow-scheduler-failover-controller/tree/airflow_v1.7
 
 ## Installation
@@ -55,7 +55,7 @@ In case you want to do development work on the project
         * latest code in master
         * BRANCH
     * airflow_v1.7
-        * latest code in airflow_v1.7 - use this for Airflow versions prior to 1.7.0
+        * latest code in airflow_v1.7 - use this for Airflow v1.7.0
         * BRANCH    
     * development
         * code in development branch - experimental fixes and features
