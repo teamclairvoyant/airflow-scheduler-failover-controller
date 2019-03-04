@@ -52,10 +52,13 @@ In case you want to do development work on the project
         * code in development branch - experimental fixes and features
         * BRANCH
     * v1.0.0
-        * version 1.0.0 of the code
+        * First release. Support for Airflow <= v1.8.0
         * RELEASE
     * v1.0.1
-        * version 1.0.1 of the code
+        * Support for Airflow <= v1.8.0  
+        * RELEASE
+    * v1.0.2
+        * Support for Airflow >= v1.8.1
         * RELEASE
 
 2. Run pip install
