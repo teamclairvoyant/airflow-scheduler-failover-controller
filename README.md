@@ -52,12 +52,14 @@ In case you want to do development work on the project
     * development
         * code in development branch - experimental fixes and features
         * BRANCH
+    * v1.0.0
+        * First release. Support for Airflow <= v1.8.0
+        * RELEASE
     * v1.0.1
-        * Please use this release if you are working with Airflow v1.8.0 or before  
+        * Support for Airflow <= v1.8.0  
         * RELEASE
     * v1.0.2
-        * Please use this release if you are working with Airflow v1.8.1 or after
-        * The package name was changed from `airflow` to `apache-airflow` as of version 1.8.1
+        * Support for Airflow >= v1.8.1
         * RELEASE
 
 2. Run pip install
