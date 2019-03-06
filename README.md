@@ -61,9 +61,6 @@ In case you want to do development work on the project
     * v1.0.2
         * Support for Airflow >= v1.8.1
         * RELEASE
-    * v1.0.3
-        * 
-        * RELEASE
 
 2. Run pip install
 
