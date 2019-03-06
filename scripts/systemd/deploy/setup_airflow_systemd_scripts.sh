@@ -1,7 +1,7 @@
 #!/bin/bash
 
-AIRFLOW_VERSION="1.7.0"
-REPO_ARCHIVE_URL="https://github.com/apache/incubator-airflow/archive/"
+AIRFLOW_VERSION="1.8.1"
+REPO_ARCHIVE_URL="https://github.com/apache/airflow/archive/"
 USERNAME="airflow"
 GROUP="airflow"
 
@@ -17,12 +17,12 @@ fi
 cd /tmp/
 
 rm ${AIRFLOW_VERSION}.zip
-rm -rf incubator-airflow-${AIRFLOW_VERSION}
+rm -rf airflow-${AIRFLOW_VERSION}
 
 wget ${REPO_ARCHIVE_URL}${AIRFLOW_VERSION}.zip
 unzip ${AIRFLOW_VERSION}.zip
 
-cd incubator-airflow-${AIRFLOW_VERSION}/scripts/systemd/
+cd airflow-${AIRFLOW_VERSION}/scripts/systemd/
 
 ENV_DIR=""
 POSSIBLE_ENV_DIR_LOCATIONS=( "/etc/sysconfig/" "/etc/systemd/" "/etc/default/" )
