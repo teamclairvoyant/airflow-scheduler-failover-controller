@@ -62,7 +62,7 @@ In case you want to do development work on the project
         * Support for Airflow >= v1.8.1
         * RELEASE
     * v1.0.3
-        * 
+        * Added virtualenv support
         * RELEASE
 
 2. Run pip install

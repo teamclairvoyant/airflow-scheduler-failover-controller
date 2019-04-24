@@ -19,4 +19,4 @@ Includes base functionality to control and check if the Scheduler is running. Su
 
 ### [v1.0.3](https://github.com/teamclairvoyant/airflow-scheduler-failover-controller/tree/v1.0.3)
 
-*
+* Added virtualenv support
