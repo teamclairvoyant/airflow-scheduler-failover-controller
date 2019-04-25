@@ -35,10 +35,10 @@ metadata_service_zookeeper_nodes = localhost:2181
 poll_frequency = """ + str(DEFAULT_POLL_FREQUENCY) + """
 
 # Command to use when trying to start a Scheduler instance on a node
-airflow_scheduler_start_command = nohup airflow scheduler >> ~/airflow/logs/scheduler.logs &
+airflow_scheduler_start_command = export AIRFLOW_HOME=""" + str(DEFAULT_AIRFLOW_HOME_DIR) + """;{};nohup airflow scheduler >> ~/airflow/logs/scheduler.logs &
 
 # Command to use when trying to stop a Scheduler instance on a node
-airflow_scheduler_stop_command = for pid in `ps -ef | grep "airflow scheduler" | awk '{print $2}'` \; do kill -9 $pid \; done
+airflow_scheduler_stop_command = for pid in `ps -ef | grep "airflow scheduler" | awk '{{print $2}}'` \; do kill -9 $pid \; done
 
 # Logging Level. Choices include:
 # NOTSET, DEBUG, INFO, WARN, ERROR, CRITICAL
@@ -178,12 +178,12 @@ class Configuration:
     def get_alert_email_subject(self):
         return self.get_scheduler_failover_config("ALERT_EMAIL_SUBJECT", DEFAULT_ALERT_EMAIL_SUBJECT)
 
-    def add_default_scheduler_failover_configs_to_airflow_configs(self):
+    def add_default_scheduler_failover_configs_to_airflow_configs(self, venv_command):
         with open(self.airflow_config_file_path, 'r') as airflow_config_file:
             if "[scheduler_failover]" not in airflow_config_file.read():
                 print "Adding Scheduler Failover configs to Airflow config file..."
                 with open(self.airflow_config_file_path, "a") as airflow_config_file_to_append:
-                    airflow_config_file_to_append.write(DEFAULT_SCHEDULER_FAILOVER_CONTROLLER_CONFIGS)
+                    airflow_config_file_to_append.write(DEFAULT_SCHEDULER_FAILOVER_CONTROLLER_CONFIGS.format(venv_command))
                     print "Finished adding Scheduler Failover configs to Airflow config file."
             else:
                 print "[scheduler_failover] section already exists. Skipping adding Scheduler Failover configs."
