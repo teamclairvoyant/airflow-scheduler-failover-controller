@@ -22,7 +22,6 @@ You will first need to startup the ASFC on each of the instances you want the sc
 
 The Active ASFC will poll every 10 seconds to see if the scheduler is running on the desired node. If it is not, the ASFC will try to restart the daemon. If the scheduler daemons still doesn't startup, the daemon is started on another node in the cluster.
 
-
 ## Installation
 
 ### Local Development
