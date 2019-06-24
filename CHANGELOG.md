@@ -23,4 +23,4 @@ Includes base functionality to control and check if the Scheduler is running. Su
 
 ### [v1.0.4](https://github.com/teamclairvoyant/airflow-scheduler-failover-controller/tree/v1.0.4)
 
-* 
+* Added Support for Python 3

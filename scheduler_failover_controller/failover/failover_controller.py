@@ -155,7 +155,7 @@ class FailoverController:
                 if line.strip() != "" and process_check_command not in line and grep_command not in line and grep_command_no_quotes not in line and full_status_check_command not in line:
                     active_list.append(line)
 
-            active_list_length = len(filter(None, active_list))
+            active_list_length = len(list(filter(None, active_list)))
 
             # todo: If there's more then one scheduler running this should kill off the other schedulers. MIGHT ALREADY BE HANDLED. DOUBLE CHECK.
 
@@ -211,7 +211,7 @@ class FailoverController:
             self.metadata_service.set_failover_heartbeat()
             self.IS_FAILOVER_CONTROLLER_ACTIVE = True
             self.logger.warning("This Failover Controller is now ACTIVE.")
-        except Exception, e:
+        except Exception as e:
             self.IS_FAILOVER_CONTROLLER_ACTIVE = False
             self.logger.error("Failed to set Failover Controller as ACTIVE. Trying again next heart beat.")
             traceback.print_exc(file=sys.stdout)

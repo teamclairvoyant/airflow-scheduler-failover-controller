@@ -36,7 +36,7 @@ def get_all_scheduler_failover_controller_objects():
 
 
 def version(args):
-    print "Scheduler Failover Controller Version: " + str(scheduler_failover_controller.__version__)
+    print("Scheduler Failover Controller Version: " + str(scheduler_failover_controller.__version__))
 
 
 def init(args):
@@ -45,21 +45,21 @@ def init(args):
     else:
         venv_command = ""
     configuration.add_default_scheduler_failover_configs_to_airflow_configs(venv_command)
-    print "Finished Initializing Configurations to allow Scheduler Failover Controller to run. Please update the airflow.cfg with your desired configurations."
+    print("Finished Initializing Configurations to allow Scheduler Failover Controller to run. Please update the airflow.cfg with your desired configurations.")
 
 
 def test_connection(args):
     scheduler_nodes_in_cluster = configuration.get_scheduler_nodes_in_cluster()
     for host in scheduler_nodes_in_cluster:
-        print "Testing Connection for host '" + str(host) + "'"
-        print command_runner.run_command(host, "echo 'Connection Succeeded'")
+        print("Testing Connection for host '" + str(host) + "'")
+        print(command_runner.run_command(host, "echo 'Connection Succeeded'"))
 
 
 def is_scheduler_running(args):
     scheduler_nodes_in_cluster, poll_frequency, metadata_service, emailer, failover_controller = get_all_scheduler_failover_controller_objects()
     for host in scheduler_nodes_in_cluster:
-        print "Testing to see if scheduler is running on host '" + str(host) + "'"
-        print failover_controller.is_scheduler_running(host)
+        print("Testing to see if scheduler is running on host '" + str(host) + "'")
+        print (failover_controller.is_scheduler_running(host))
 
 
 def clear_metadata(args):
@@ -69,7 +69,7 @@ def clear_metadata(args):
 
 def metadata(args):
     scheduler_nodes_in_cluster, poll_frequency, metadata_service, emailer, failover_controller = get_all_scheduler_failover_controller_objects()
-    print "Getting Metadata for current_host: '" + configuration.get_current_host() + "'"
+    print ("Getting Metadata for current_host: '" + configuration.get_current_host() + "'")
     metadata_service.print_metadata()
 
 
@@ -85,7 +85,7 @@ def send_test_email(args):
 
 
 def get_current_host(args):
-    print "current host: " + str(current_host)
+    print("current host: " + str(current_host))
 
 
 def start(args):

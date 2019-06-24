@@ -55,7 +55,7 @@ class CommandRunner:
             if process.returncode != 0:
                 self.logger.warn("Process returned code '" + str(process.returncode) + "'")
                 is_successful = False
-        except Exception, e:
+        except Exception as e:
             is_successful = False
             output = str(e)
         self.logger.debug("Run Command output: " + str(output))
