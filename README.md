@@ -63,6 +63,9 @@ In case you want to do development work on the project
     * v1.0.3
         * Added virtualenv support
         * RELEASE
+    * v1.0.4
+        * Added Support for Python 3
+        * RELEASE
 
 2. Run pip install
 

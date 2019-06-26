@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SCHEDULER_FAILOVER_CONTROLLER_VERSION="v1.0.3"
+SCHEDULER_FAILOVER_CONTROLLER_VERSION="v1.0.4"
 REPO_ARCHIVE_URL="https://github.com/teamclairvoyant/airflow-scheduler-failover-controller/archive/"
 USERNAME="airflow"
 GROUP="airflow"

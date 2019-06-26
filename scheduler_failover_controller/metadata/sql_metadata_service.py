@@ -32,7 +32,7 @@ class SQLMetadataService(BaseMetadataService):
         try:
             self.logger.info("Creating Metadata Table")
             Base.metadata.create_all(self.engine)
-        except Exception, e:
+        except Exception as e:
             self.logger.info("Exception while Creating Metadata Table: " + str(e))
             self.logger.info("Table might already exist. Suppressing Exception.")
 
