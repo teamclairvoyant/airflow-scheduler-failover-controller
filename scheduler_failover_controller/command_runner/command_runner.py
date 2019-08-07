@@ -48,10 +48,10 @@ class CommandRunner:
             if process.stderr is not None:
                 stderr_output = process.stderr.readlines()
                 if stderr_output and len(stderr_output) > 0:
-                    output += stderr_output
+                    output += [err.decode() if isinstance(err, bytes) else err for err in stderr_output]
                     self.logger.debug("Run Command stderr output: " + str(stderr_output))
             if process.stdout is not None:
-                output += process.stdout.readlines()
+                output += [out.decode() if isinstance(out, bytes) else out for out in process.stdout.readlines()]
             if process.returncode != 0:
                 self.logger.warn("Process returned code '" + str(process.returncode) + "'")
                 is_successful = False
