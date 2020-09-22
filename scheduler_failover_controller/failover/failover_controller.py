@@ -169,6 +169,23 @@ class FailoverController:
                 standby_nodes.append(node)
         return standby_nodes
 
+    def startup_scheduler(self, host):
+        self.logger.info("Starting Scheduler on host '" + str(host) + "'...")
+        is_successful, output = self.command_runner.run_command(
+            host, self.airflow_scheduler_start_command)
+        self.LATEST_FAILED_START_MESSAGE = output
+        self.logger.info(
+            "Finished starting Scheduler on host '" + str(host) + "'")
+
+    def shutdown_scheduler(self, host):
+        self.logger.warning(
+            "Starting to shutdown Scheduler on host '" + host + "'...")
+        is_successful, output = self.command_runner.run_command(
+            host, self.airflow_scheduler_stop_command)
+        self.LATEST_FAILED_SHUTDOWN_MESSAGE = output
+        self.logger.warning(
+            "Finished shutting down Scheduler on host '" + host + "'")
+
     def is_scheduler_running(self, host):
         self.logger.info(
             "Starting to Check if Scheduler on host '" + str(host) + "' is running...")
@@ -199,27 +216,21 @@ class FailoverController:
                                                    "web_server_port")) + "/health"
                 try:
                     response = requests.request("GET", url)
-                    json_data = response. json()
+                    json_data = response.json()
 
                     scheduler_status = json_data["scheduler"]["status"]
                     if (str.lower(scheduler_status) == "healthy"):
                         self.logger.info(
-                            "According to the webserver, is_running: " + str(is_running))
+                            "According to the webserver, scheduler_status: " + str(scheduler_status))
                         is_running = True
 
                     else:
                         is_running = False
                         self.logger.info("Finished Checking if Scheduler on host '" + str(
-                            host) + "' is running. Seems the airflow scheduler is hung. According to the webserver, is_running: " + str(is_running))
+                            host) + "' is running. Seems the airflow scheduler is hung. According to the webserver, scheduler_status: " + str(scheduler_status))
 
                         # Killing hung processes
-                        kill_scheduler_command = "ps -eaf | grep 'airflow scheduler' | awk '{print $2}' | xargs kill -9 $1"
-                        is_successful, output = self.command_runner.run_command(
-                            host, kill_scheduler_command)
-                        self.LATEST_FAILED_STATUS_MESSAGE = output
-                        self.logger.info(
-                            "Kill Command Status: " + str(is_successful))
-
+                        self.shutdown_scheduler(host)
                 except Exception as e:
                     self.logger.warn(e)
                     self.logger.warn(
@@ -231,23 +242,6 @@ class FailoverController:
                          str(host) + "' is running. is_running: " + str(is_running))
 
         return is_running
-
-    def startup_scheduler(self, host):
-        self.logger.info("Starting Scheduler on host '" + str(host) + "'...")
-        is_successful, output = self.command_runner.run_command(
-            host, self.airflow_scheduler_start_command)
-        self.LATEST_FAILED_START_MESSAGE = output
-        self.logger.info(
-            "Finished starting Scheduler on host '" + str(host) + "'")
-
-    def shutdown_scheduler(self, host):
-        self.logger.warning(
-            "Starting to shutdown Scheduler on host '" + host + "'...")
-        is_successful, output = self.command_runner.run_command(
-            host, self.airflow_scheduler_stop_command)
-        self.LATEST_FAILED_SHUTDOWN_MESSAGE = output
-        self.logger.warning(
-            "Finished shutting down Scheduler on host '" + host + "'")
 
     def search_for_active_scheduler_node(self):
         active_scheduler_node = None
