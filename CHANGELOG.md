@@ -28,3 +28,7 @@ Includes base functionality to control and check if the Scheduler is running. Su
 ### [v1.0.5](https://github.com/teamclairvoyant/airflow-scheduler-failover-controller/tree/v1.0.5)
 
 * Fixed Python 3 issue - `TypeError: a bytes-like object is required, not 'str'`
+
+### [v1.0.6](https://github.com/teamclairvoyant/airflow-scheduler-failover-controller/tree/v1.0.6)
+
+* 

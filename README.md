@@ -69,6 +69,9 @@ In case you want to do development work on the project
     * v1.0.5
         * Fixed issues with Python 3
         * RELEASE
+    * v1.0.6
+        * 
+        * RELEASE
 
 2. Run pip install
 
