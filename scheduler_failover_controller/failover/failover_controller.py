@@ -172,7 +172,7 @@ class FailoverController:
             # todo: If there's more then one scheduler running this should kill off the other schedulers. MIGHT ALREADY BE HANDLED. DOUBLE CHECK.
 
             is_running = active_list_length > 0
-            if (is_running):
+            if is_running:
                 url = "http://" + \
                     str(host) + ":" + str(conf.get("webserver",
                                                    "web_server_port")) + "/health"
@@ -182,8 +182,7 @@ class FailoverController:
 
                     scheduler_status = json_data["scheduler"]["status"]
                     if (str.lower(scheduler_status) == "healthy"):
-                        self.logger.info(
-                            "According to the webserver, scheduler_status: " + str(scheduler_status))
+                        self.logger.info("According to the webserver, scheduler_status: " + str(scheduler_status))
                         is_running = True
 
                     else:
@@ -195,8 +194,7 @@ class FailoverController:
                         self.shutdown_scheduler(host)
                 except Exception as e:
                     self.logger.warn(e)
-                    self.logger.warn(
-                        "Failed to do a GET call on the Airflow webserver")
+                    self.logger.warn("Failed to do a GET call on the Airflow webserver")
         else:
             self.logger.critical("is_scheduler_running check failed")
 
