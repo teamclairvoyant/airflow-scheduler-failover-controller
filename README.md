@@ -183,7 +183,9 @@ You can use the scheduler_failover_controller on a virtual environment too. To d
         scheduler_failover_controller -venv PATH_TO_VIRTUALENV/bin/activate init
 
         
-3. Update the default configurations that were added to the bottom of the airflow.cfg file under the [scheduler_failover] section
+3. Ensure that the `base_url` value under [webserver] in airflow.cfg is set to the Airflow webserver.
+
+4. Update the default configurations that were added to the bottom of the airflow.cfg file under the [scheduler_failover] section
 
     a. Main ones include updating: **scheduler_nodes_in_cluster**, **alert_to_email**
     
@@ -193,17 +195,17 @@ You can use the scheduler_failover_controller on a virtual environment too. To d
         
        * So, if this command printed out 'ip-10-0-0-98', include this as the value for that particular host. 
     
-4. Enable all the machines to be able to ssh to each of the other machines with the user you're running airflow as
+5. Enable all the machines to be able to ssh to each of the other machines with the user you're running airflow as
     
     a. Create a public and private key SSH key on all of the machines you want to act as schedulers. You can follow these instructions: https://www.digitalocean.com/community/tutorials/how-to-set-up-ssh-keys--2
         
     b. Add the public key content to the ~/.ssh/authorized_keys file on all the other machines
 
-5. Run the following CLI command to test the connection to all the machines that will act as Schedulers
+6. Run the following CLI command to test the connection to all the machines that will act as Schedulers
 
         scheduler_failover_controller test_connection
 
-6. Startup the following Airflow Daemons
+7. Startup the following Airflow Daemons
 
     a. webserver
     
@@ -213,17 +215,17 @@ You can use the scheduler_failover_controller on a virtual environment too. To d
 
         nohup airflow worker $* >> ~/airflow/logs/celery.logs &
 
-7. Startup the Airflow Scheduler Failover Controller on each node you would like acting as the Scheduler Failover Controller (ONE AT A TIME).
+8. Startup the Airflow Scheduler Failover Controller on each node you would like acting as the Scheduler Failover Controller (ONE AT A TIME).
 
     * See the above section entitled "Startup/Status/Shutdown Instructions"
     
-8. View the logs to ensure things are running correctly
+9.  View the logs to ensure things are running correctly
 
     * Location of the logs can be determined by the 'logging_dir' configuration entry in the airflow.cfg 
     
     * Note: Logs are set by default to rotate at midnight and only keep 7 days worth of backups. This can be overridden in the configuration file.
     
-9. View the metadata to ensure things are being set correctly
+10. View the metadata to ensure things are being set correctly
 
         scheduler_failover_controller metadata
 
