@@ -173,11 +173,10 @@ class FailoverController:
 
             is_running = active_list_length > 0
             if is_running:
-                url = "http://" + \
-                    str(host) + ":" + str(conf.get("webserver",
-                                                   "web_server_port")) + "/health"
+                af_health_url = str(conf.get("webserver", "base_url")) + "/health"
+                logging.info("Airflow Health URL: " + str(af_health_url))
                 try:
-                    response = requests.request("GET", url)
+                    response = requests.request("GET", af_health_url)
                     json_data = response.json()
 
                     scheduler_status = json_data["scheduler"]["status"]
