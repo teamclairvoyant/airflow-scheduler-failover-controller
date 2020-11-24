@@ -33,3 +33,7 @@ Includes base functionality to control and check if the Scheduler is running. Su
 
 * Added feature to poll the health URL to ensure the Scheduler is Healthy
 * Updating Documentation in README
+
+### [v1.0.7](https://github.com/teamclairvoyant/airflow-scheduler-failover-controller/tree/v1.0.7)
+
+* 

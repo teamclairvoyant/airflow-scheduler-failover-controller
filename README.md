@@ -72,6 +72,9 @@ In case you want to do development work on the project
     * v1.0.6
         * Added feature to poll the health URL to ensure the Scheduler is Healthy
         * RELEASE
+    * v1.0.7
+        * 
+        * RELEASE
 
 2. Run pip install
 
