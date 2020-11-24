@@ -49,7 +49,7 @@ In case you want to do development work on the project
         * latest code in master
         * BRANCH
     * development
-        * code in development branch - experimental fixes and features
+        * code in development branch - pending fixes and features
         * BRANCH
     * v1.0.0
         * First release. Support for Airflow <= v1.8.0
@@ -70,7 +70,7 @@ In case you want to do development work on the project
         * Fixed issues with Python 3
         * RELEASE
     * v1.0.6
-        * 
+        * Added feature to poll the health URL to ensure the Scheduler is Healthy
         * RELEASE
 
 2. Run pip install
