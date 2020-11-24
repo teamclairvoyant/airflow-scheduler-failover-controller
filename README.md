@@ -188,12 +188,8 @@ You can use the scheduler_failover_controller on a virtual environment too. To d
 4. Update the default configurations that were added to the bottom of the airflow.cfg file under the [scheduler_failover] section
 
     a. Main ones include updating: **scheduler_nodes_in_cluster**, **alert_to_email**
-    
-       * For scheduler_nodes_in_cluster property, it is recommended that you use the value printed from the following command:
-       
-        scheduler_failover_controller get_current_host
-        
-       * So, if this command printed out 'ip-10-0-0-98', include this as the value for that particular host. 
+
+    b. See the [Configurations](#configurations) Section bellow for more details
     
 5. Enable all the machines to be able to ssh to each of the other machines with the user you're running airflow as
     
@@ -230,6 +226,110 @@ You can use the scheduler_failover_controller on a virtual environment too. To d
         scheduler_failover_controller metadata
 
 
+## Configurations
+
+#### scheduler_nodes_in_cluster
+
+*required*
+
+Default: localhost
+
+List of potential nodes that can act as Schedulers (Comma Separated List)
+
+It is recommended that you use the value printed from the following command:
+       
+ `scheduler_failover_controller get_current_host`
+        
+So, if this command printed out 'ip-10-0-0-98', include this as the value for that particular host. 
+
+#### metadata_service_type
+
+*required*
+
+Default: SQLMetadataService
+
+The metadata service class that the failover controller should use. Choices include: SQLMetadataService, ZookeeperMetadataService
+
+SQLMetadataService will use your sql_alchemy_conn config in the airflow.cfg file to connect to SQL
+
+ZookeeperMetadataService will use the metadata_service_zookeeper_nodes config in the airflow.cfg under the [scheduler_failover] section
+
+#### metadata_service_zookeeper_nodes
+
+*required* if metadata_service_type == ZookeeperMetadataService
+
+Default: localhost:2181
+
+If you're using the ZookeeperMetadataService, this property will identify the zookeeper nodes it will try to connect to
+
+#### poll_frequency
+
+Default: DEFAULT_POLL_FREQUENCY
+
+Frequency that the Scheduler Failover Controller polls to see if the scheduler is running (in seconds)
+
+#### airflow_scheduler_start_command
+
+Default: "export AIRFLOW_HOME=~/airflow;{};nohup airflow scheduler >> ~/airflow/logs/scheduler.logs &"
+
+Command to use when trying to start a Scheduler instance on a node
+
+#### airflow_scheduler_stop_command
+
+Default: "for pid in `ps -ef | grep "airflow scheduler" | awk '{{print $2}}'` \; do kill -9 $pid \; done"
+
+Command to use when trying to stop a Scheduler instance on a node
+
+#### logging_level
+
+Default: INFO
+
+Logging Level. Choices include:
+NOTSET, DEBUG, INFO, WARN, ERROR, CRITICAL
+
+#### logging_dir
+
+Default: "~/airflow/logs/scheduler_failover/"
+
+Log Directory Location
+
+#### logging_file_name
+
+Default: scheduler_failover_controller.log
+
+Log File Name
+
+#### logs_rotate_when
+
+Default: midnight
+
+When the logs should be rotated.
+Values Documentation: https://docs.python.org/2/library/logging.handlers.html#logging.handlers.TimedRotatingFileHandler
+
+#### logs_rotate_backup_count
+
+Default: 7
+
+How many times the logs should be rotate before you clear out the old ones
+
+#### retry_count_before_alerting
+
+Detault: 5
+
+Number of times to retry starting up the scheduler before it sends an alert
+
+#### alert_to_email
+
+Detault: airflow@airflow.com
+
+Email address to send alerts to if the failover controller is unable to startup a scheduler 
+
+#### alert_email_subject
+
+Default: "Airflow Alert - Scheduler Failover Controller Failed to Startup Scheduler"
+
+Email Subject to use when sending an alert
+
 ## Recommended Steps for a Better Deployment
 
 Above describes a quickstart approach. However, if you're looking for a better long term approach for using the Airflow Scheduler Failover Controller then you can follow the bellow steps.
@@ -239,6 +339,8 @@ Above describes a quickstart approach. However, if you're looking for a better l
 Airflow provides scripts to help you control the airflow daemons through the **systemctl** command. It is recommended that you setup the airflow-scheduler, at least, for systemd. 
   
 Go to https://github.com/apache/incubator-airflow/tree/master/scripts/systemd and follow the instructions in the README file to get it setup.
+
+Note: It is also recommended to diable the automatic restart of the Scheduler process in the SystemD file. So remove the `Retry` and `RestartSec` section in the default SystemD file.
 
 ### Update airflow.cfg configs to use the Systemd
 
