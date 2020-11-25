@@ -3,8 +3,8 @@ import sys
 import traceback
 import datetime
 import time
-
-
+from airflow.configuration import conf
+import requests
 class FailoverController:
 
     IS_FAILOVER_CONTROLLER_ACTIVE = False   # Set to False in the beginning and then set to True as it becomes active
@@ -174,7 +174,7 @@ class FailoverController:
             is_running = active_list_length > 0
             if is_running:
                 af_health_url = str(conf.get("webserver", "base_url")) + "/health"
-                logging.info("Airflow Health URL: " + str(af_health_url))
+                self.logger.info("Airflow Health URL: " + str(af_health_url))
                 try:
                     response = requests.request("GET", af_health_url)
                     json_data = response.json()
