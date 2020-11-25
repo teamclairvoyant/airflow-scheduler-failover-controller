@@ -5,6 +5,7 @@ import datetime
 import time
 from airflow.configuration import conf
 import requests
+
 class FailoverController:
 
     IS_FAILOVER_CONTROLLER_ACTIVE = False   # Set to False in the beginning and then set to True as it becomes active
