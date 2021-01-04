@@ -177,7 +177,7 @@ class FailoverController:
                 af_health_url = str(conf.get("webserver", "base_url")) + "/health"
                 self.logger.info("Airflow Health URL: " + str(af_health_url))
                 try:
-                    response = requests.request("GET", af_health_url)
+                    response = requests.request("GET", af_health_url,verify=False)
                     json_data = response.json()
 
                     scheduler_status = json_data["scheduler"]["status"]
