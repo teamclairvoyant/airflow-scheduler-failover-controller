@@ -73,6 +73,9 @@ In case you want to do development work on the project
         * Added feature to poll the health URL to ensure the Scheduler is Healthy
         * RELEASE
     * v1.0.7
+        * Disable SSL Verify for Airflow API Request
+        * RELEASE
+    * v1.0.8
         * 
         * RELEASE
 
