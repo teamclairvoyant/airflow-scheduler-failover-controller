@@ -37,7 +37,3 @@ Includes base functionality to control and check if the Scheduler is running. Su
 ### [v1.0.7](https://github.com/teamclairvoyant/airflow-scheduler-failover-controller/tree/v1.0.7)
 
 * Disabled SSL verify for Airflow API Request
-
-### [v1.0.8](https://github.com/teamclairvoyant/airflow-scheduler-failover-controller/tree/v1.0.8)
-
-* 
