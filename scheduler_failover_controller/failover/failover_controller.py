@@ -156,7 +156,7 @@ class FailoverController:
         self.logger.info("Starting to Check if Scheduler on host '" + str(host) + "' is running...")
 
         process_check_command = "ps -eaf"
-        grep_command = "grep 'airflow scheduler' | grep -v grep"
+        grep_command = "grep 'airflow scheduler' | grep -v grep || true"
         grep_command_no_quotes = grep_command.replace("'", "")
         full_status_check_command = process_check_command + " | " + grep_command  # ps -eaf | grep 'airflow scheduler' | grep -v grep
         is_running = False
