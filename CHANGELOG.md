@@ -37,3 +37,9 @@ Includes base functionality to control and check if the Scheduler is running. Su
 ### [v1.0.7](https://github.com/teamclairvoyant/airflow-scheduler-failover-controller/tree/v1.0.7)
 
 * Disabled SSL verify for Airflow API Request
+
+### [v1.0.8](https://github.com/teamclairvoyant/airflow-scheduler-failover-controller/tree/v1.0.8)
+
+* Exit code fix when SSHing onto another node
+* Increase default polling frequency from 10 to 60 seconds
+* Add support for conifguring SCHEDULER_RESTART_SLEEP_TIME (default: 35 seconds)
