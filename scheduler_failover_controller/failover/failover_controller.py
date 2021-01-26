@@ -10,6 +10,7 @@ class FailoverController:
 
     IS_FAILOVER_CONTROLLER_ACTIVE = False   # Set to False in the beginning and then set to True as it becomes active
     RETRY_COUNT = 0                         # Set to 0 in the beginning and then is incremented
+    SCHEDULER_RESTART_SLEEP_TIME = 35
     LATEST_FAILED_STATUS_MESSAGE = None
     LATEST_FAILED_START_MESSAGE = None
     LATEST_FAILED_SHUTDOWN_MESSAGE = None
@@ -93,8 +94,8 @@ class FailoverController:
                 if not self.is_scheduler_running(active_scheduler_node):
                     self.logger.warning("Scheduler is not running on Active Scheduler Node '" + str(active_scheduler_node) + "'")
                     self.startup_scheduler(active_scheduler_node)
-                    self.logger.info("Pausing for 2 seconds to allow the Scheduler to Start")
-                    time.sleep(2)
+                    self.logger.info("Pausing for " + str(self.SCHEDULER_RESTART_SLEEP_TIME) + " seconds to allow the Scheduler to Start")
+                    time.sleep(self.SCHEDULER_RESTART_SLEEP_TIME)
                     if not self.is_scheduler_running(active_scheduler_node):
                         self.logger.warning("Failed to restart Scheduler on Active Scheduler Node '" +str(active_scheduler_node) + "'")
                         self.logger.warning("Starting to search for a new Active Scheduler Node")
@@ -156,9 +157,9 @@ class FailoverController:
         self.logger.info("Starting to Check if Scheduler on host '" + str(host) + "' is running...")
 
         process_check_command = "ps -eaf"
-        grep_command = "grep 'airflow scheduler' | grep -v grep"
+        grep_command = "grep 'airflow scheduler' | grep -v grep || true"
         grep_command_no_quotes = grep_command.replace("'", "")
-        full_status_check_command = process_check_command + " | " + grep_command  # ps -eaf | grep 'airflow scheduler' | grep -v grep
+        full_status_check_command = process_check_command + " | " + grep_command  # ps -eaf | grep 'airflow scheduler' | grep -v grep || true
         is_running = False
         is_successful, output = self.command_runner.run_command(host, full_status_check_command)
         self.LATEST_FAILED_STATUS_MESSAGE = output

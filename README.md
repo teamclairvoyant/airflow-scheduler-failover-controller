@@ -75,6 +75,11 @@ In case you want to do development work on the project
     * v1.0.7
         * Disable SSL Verify for Airflow API Request
         * RELEASE
+    * v1.0.8
+        * Exit code fix when SSHing onto another node
+        * Increase default polling frequency from 10 to 60 seconds
+        * Add support for conifguring SCHEDULER_RESTART_SLEEP_TIME (default: 35 seconds
+        * RELEASE
 
 2. Run pip install
 
@@ -85,7 +90,7 @@ In case you want to do development work on the project
     usage: scheduler_failover_controller [-h]
                                          {version,init,test_connection,is_scheduler_running,clear_metadata,metadata,send_test_email,get_current_host,start}
                                          ...
-    
+
     positional arguments:
       {version,init,test_connection,is_scheduler_running,clear_metadata,metadata,send_test_email,get_current_host,start}
                             sub-command help
