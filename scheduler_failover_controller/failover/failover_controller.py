@@ -103,6 +103,7 @@ class FailoverController:
                         for standby_node in self.get_standby_nodes(active_scheduler_node):
                             self.logger.warning("Trying to startup Scheduler on STANDBY node '" + str(standby_node) + "'")
                             self.startup_scheduler(standby_node)
+                            time.sleep(self.SCHEDULER_RESTART_SLEEP_TIME)
                             if self.is_scheduler_running(standby_node):
                                 is_successful = True
                                 active_scheduler_node = standby_node
