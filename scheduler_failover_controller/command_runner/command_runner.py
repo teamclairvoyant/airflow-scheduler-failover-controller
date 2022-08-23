@@ -31,9 +31,9 @@ class CommandRunner:
     def _run_ssh_command(self, host, base_command):
         self.logger.debug("Running command as SSH command")
         if base_command.startswith("sudo"):
-            command_split = ["ssh", "-tt", host, base_command]
+            command_split = ["ssh", "-o StrictHostKeyChecking=no", "-tt", host, base_command]
         else:
-            command_split = ["ssh", host, base_command]
+            command_split = ["ssh", "-o StrictHostKeyChecking=no", host, base_command]
         return self._run_split_command(
             command_split=command_split
         )
