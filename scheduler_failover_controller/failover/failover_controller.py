@@ -94,8 +94,7 @@ class FailoverController:
                 if not self.is_scheduler_running(active_scheduler_node):
                     self.logger.warning("Scheduler is not running on Active Scheduler Node '" + str(active_scheduler_node) + "'")
                     self.startup_scheduler(active_scheduler_node)
-                    self.logger.info("Pausing for " + str(self.SCHEDULER_RESTART_SLEEP_TIME) + " seconds to allow the Scheduler to Start")
-                    time.sleep(self.SCHEDULER_RESTART_SLEEP_TIME)
+
                     if not self.is_scheduler_running(active_scheduler_node):
                         self.logger.warning("Failed to restart Scheduler on Active Scheduler Node '" +str(active_scheduler_node) + "'")
                         self.logger.warning("Starting to search for a new Active Scheduler Node")
@@ -145,6 +144,8 @@ class FailoverController:
         self.logger.info("Starting Scheduler on host '" + str(host) + "'...")
         is_successful, output = self.command_runner.run_command(host, self.airflow_scheduler_start_command)
         self.LATEST_FAILED_START_MESSAGE = output
+        self.logger.info("Pausing for " + str(self.SCHEDULER_RESTART_SLEEP_TIME) + " seconds to allow the Scheduler to Start")
+        time.sleep(self.SCHEDULER_RESTART_SLEEP_TIME)
         self.logger.info("Finished starting Scheduler on host '" + str(host) + "'")
 
     def shutdown_scheduler(self, host):
