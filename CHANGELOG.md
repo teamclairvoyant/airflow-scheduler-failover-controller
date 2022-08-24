@@ -47,3 +47,4 @@ Includes base functionality to control and check if the Scheduler is running. Su
 ### [v1.0.9](https://github.com/teamclairvoyant/airflow-scheduler-failover-controller/tree/v1.0.9)
 
 * Wait before checking scheduler has started on the standby node
+* Disable strict host checking when SSHing
